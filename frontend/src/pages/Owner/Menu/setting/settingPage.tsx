@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Paper, Tabs, Tab } from '@mui/material';
 import { Zap, CreditCard, Home } from 'lucide-react';
 import UtilityTab from './tabs/utilityTab';
