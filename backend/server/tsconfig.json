@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    /* พื้นฐานโครงการ */
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    
+    /* สภาพแวดล้อม */
+    "lib": ["ESNext"],
+    "types": ["node"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* ตรวจสอบความถูกต้อง (Strict) */
+    "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+
+    /* ปิดส่วนที่ไม่จำเป็นสำหรับ Backend */
+    "jsx": "preserve"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

@@ -1,24 +1,20 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Dependency folders
+node_modules/
+frontend/node_modules/
+backend/node_modules/
 
-node_modules
-dist
-dist-ssr
-*.local
+# Env files (ความลับห้ามหลุด!)
+.env
+backend/.env
+frontend/.env
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Build folders
+dist/
+backend/dist/
+
+# Uploads (รูปบิลที่เทสในเครื่อง)
+uploads/
+backend/uploads/
+
+# OS files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?

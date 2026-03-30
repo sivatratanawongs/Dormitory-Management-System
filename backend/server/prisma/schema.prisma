@@ -1,0 +1,105 @@
+// backend/server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model RoomType {
+  id    String @id @default(uuid())
+  name  String @unique
+  rooms Room[]
+}
+
+model Room {
+  id           String   @id @default(uuid())
+  roomNumber   String   @unique
+  floor        Int      @default(1)
+  roomTypeId   String
+  roomType     RoomType @relation(fields: [roomTypeId], references: [id])
+  basePrice    Int
+  description  String?
+  status       String   @default("ว่าง")
+  
+  tenants      Tenant[]
+  billings     Billing[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Tenant {
+  id             String    @id @default(uuid())
+  name           String
+  nickname       String?
+  phone          String
+  lineId         String?
+  lineUserId      String?
+  idCard         String?
+  address        String? 
+  contractDate   DateTime  @default(now())
+  moveInDate     DateTime  @default(now()) 
+  contractEndDate DateTime?
+
+  emergencyName  String?
+  emergencyPhone String?
+  contractTerm   Int       @default(6)
+  deposit        Float     @default(0)
+  otherNotes     String? 
+  status         String    @default("active") 
+  roomId         String
+  idCardUrl      String?
+  contractFileUrl String?
+
+  room           Room      @relation(fields: [roomId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  billings  Billing[]
+}
+
+model Billing {
+  id            String    @id @default(uuid())
+  month         String
+  elecUnitPrev  Float
+  elecUnitCurr  Float
+  waterUnitPrev Float
+  waterUnitCurr Float
+  elecRate      Float     @default(7.0)
+  waterRate     Float     @default(18.0)
+  waterMinUnit  Float     @default(5.0)
+  commonFee     Float     @default(0.0)
+  roomPrice     Float 
+  totalAmount   Float
+  status        String    @default("pending") 
+  paidAt        DateTime?
+
+  tenantId      String?   
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id])
+
+  roomId        String
+  room          Room      @relation(fields: [roomId], references: [id])
+
+  createdAt     DateTime  @default(now())
+}
+
+model SystemSetting {
+  id           String   @id @default(uuid())
+  elecRate     Float    @default(7.0)
+  waterRate    Float    @default(18.0)
+  waterMinUnit Float    @default(5.0)
+  commonFee    Float    @default(0.0)
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model PaymentSetting {
+  id            String   @id @default(uuid())
+  accountName   String?
+  bankName      String?
+  accountNumber String?
+  qrCodeUrl     String?
+  updatedAt     DateTime @updatedAt
+}
