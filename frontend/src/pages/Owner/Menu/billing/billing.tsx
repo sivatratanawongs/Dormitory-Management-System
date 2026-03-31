@@ -58,7 +58,6 @@ const BillingPage = () => {
       if (!systemSetting) return;
       
       try {
-          // 1. กรองเฉพาะห้องที่มีผู้เช่า (เพราะห้องว่างเราอาจจะไม่ต้องบันทึกรูปบิล)
           const activeRooms = rooms.filter(room => room.tenantId !== null);
           const emptyRooms = rooms.filter(room => room.tenantId === null);
 
