@@ -72,13 +72,16 @@ const BillingPage = () => {
               if (billRefs.current[room.id]) {
                   const element = billRefs.current[room.id];
                   if (element) {
+                      await new Promise(resolve => setTimeout(resolve, 500)); 
+
                       const canvas = await html2canvas(element, {
-                          scale: 1.5, // ลดลงเหลือ 1.5 เพื่อให้ส่ง 14 ห้องได้เร็วขึ้น
-                          useCORS: true,
+                          scale: 2, 
+                          useCORS: true, 
+                          allowTaint: false,
                           backgroundColor: "#ffffff",
-                          logging: false // ปิด log เพื่อความสะอาดของ console
+                          logging: true 
                       });
-                      base64Image = canvas.toDataURL("image/jpeg", 0.7);
+                      base64Image = canvas.toDataURL("image/jpeg", 0.8);
                   }
               }
 
@@ -95,11 +98,10 @@ const BillingPage = () => {
                   waterRate: systemSetting.waterRate,
                   totalAmount: calculateTotal(room),
                   status: "pending" as BillingStatus,
-                  billImageData: base64Image // 📸 ส่งรูปไปด้วย
+                  billImageData: base64Image 
               };
           }));
 
-          // 2. ข้อมูลสำหรับห้องว่าง (ถ้าต้องการบันทึกด้วย แต่ไม่ต้องมีรูป)
           const emptyBillings = emptyRooms.map(room => ({
               roomId: room.id,
               tenantId: null,
@@ -120,16 +122,13 @@ const BillingPage = () => {
 
           if (allBillings.length === 0) return;
           
-          // ส่งไปยัง Backend
           await BillingFrontendService.createBulk(allBillings);
           
-          alert("บันทึกข้อมูลและส่งบิลเรียบร้อย!");
           setOpenDialog(false);
           globalThis.location.reload();
 
       } catch (error) {
           console.error("Save Error:", error);
-          alert("เกิดข้อผิดพลาด: โปรดตรวจสอบว่าขนาดไฟล์ไม่ใหญ่เกินไปหรือ Server ดับ");
       }
   };
 
@@ -424,8 +423,10 @@ const BillingPage = () => {
                     <Box sx={{ textAlign: "center", ml: 2 }}>
                       <img 
                         src={`${API_BASE_URL}${paymentSetting.qrCodeUrl}`} 
-                        alt="QR Code สำหรับชำระเงิน"
+                        alt="QR Code"
+                        crossOrigin="anonymous"
                         style={{ width: '100%', maxWidth: '300px' }}
+                        onLoad={() => console.log("QR Image Loaded")}
                       />
                       <Typography sx={{ fontSize: "0.65rem", color: "#64748b", mt: 0.5 }}>Scan เพื่อชำระ</Typography>
                     </Box>
