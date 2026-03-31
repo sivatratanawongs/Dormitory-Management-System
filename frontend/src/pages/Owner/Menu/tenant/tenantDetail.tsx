@@ -14,7 +14,7 @@ import { BillingFrontendService } from '../../../../services/billingService';
 import type { DetailItemProps, DocumentItemProps, ITenant } from '../../../../type/tenant';
 import type { ITenantBillingHistory } from '../../../../type/billing';
 
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 const TenantDetail = () => {
   const navigate = useNavigate();
