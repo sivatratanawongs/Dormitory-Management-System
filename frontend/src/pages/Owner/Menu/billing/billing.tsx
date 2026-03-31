@@ -16,7 +16,6 @@ import type { BillingRoomState, BillingStatus } from "../../../../type/billing";
 import { TenantFrontendService } from "../../../../services/tenantService";
 
 const BillingPage = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL ;
   const [openDialog, setOpenDialog] = useState(false);
   const [rooms, setRooms] = useState<BillingRoomState[]>([]);
   const [recordDate, setRecordDate] = useState<Date | null>(new Date()); 
@@ -163,6 +162,13 @@ const BillingPage = () => {
     };
     loadInitialData();
   }, []);
+
+  const getImageUrl = (path: string | null | undefined) => {
+    if (!path) return "";
+    if (path.startsWith("data:")) return path; 
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
+    return `${baseUrl}${path}`;
+};
 
   return (
     <Box>
@@ -422,7 +428,7 @@ const BillingPage = () => {
                   {paymentSetting?.qrCodeUrl && (
                     <Box sx={{ textAlign: "center", ml: 2 }}>
                       <img 
-                        src={`${API_BASE_URL}${paymentSetting.qrCodeUrl}`} 
+                        src={getImageUrl(paymentSetting?.qrCodeUrl)} 
                         alt="QR Code"
                         crossOrigin="anonymous"
                         style={{ width: '100%', maxWidth: '300px' }}
