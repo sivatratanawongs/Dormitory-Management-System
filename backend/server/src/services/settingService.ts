@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { IPaymentSetting, ISystemSetting } from '../interfaces/setting.interface.js';
+import { createClient } from '@supabase/supabase-js';
 
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 const prisma = new PrismaClient();
 
 export const SettingService = {
@@ -38,16 +43,38 @@ export const SettingService = {
     return config;
   },
 
-  async updatePaymentSettings(data: Partial<IPaymentSetting>): Promise<IPaymentSetting> {
+  async updatePaymentSettings(data: any, file?: Express.Multer.File): Promise<IPaymentSetting> {
     const config = await prisma.paymentSetting.findFirst();
+    let qrUrl = data.qrCodeUrl;
+
+    // 📸 ถ้ามีการส่งไฟล์รูปมา ให้จัดการส่งขึ้น Supabase Storage
+    if (file) {
+      const fileName = `qr-${Date.now()}.jpg`;
+      
+      const { data: uploadData, error } = await supabase.storage
+        .from('qrcodes') // ชื่อ Bucket ที่คุณสร้าง
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
+          upsert: true
+        });
+
+      if (error) throw new Error(error.message);
+
+      // ดึง Public URL มาเก็บในฐานข้อมูล
+      const { data: { publicUrl } } = supabase.storage
+        .from('qrcodes')
+        .getPublicUrl(fileName);
+      
+      qrUrl = publicUrl;
+    }
 
     return await prisma.paymentSetting.update({
-      where: { id: config?.id }, // อัปเดตตาม ID จริงที่เจอใน DB
+      where: { id: config?.id },
       data: {
         accountName: data.accountName,
         bankName: data.bankName,
         accountNumber: data.accountNumber,
-        ...(data.qrCodeUrl !== undefined && { qrCodeUrl: data.qrCodeUrl }),
+        qrCodeUrl: qrUrl,
       },
     });
   }
