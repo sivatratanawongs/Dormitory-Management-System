@@ -432,9 +432,9 @@ const BillingPage = () => {
                       alt="QR Code"
                       crossOrigin="anonymous"
                       style={{ 
-                        width: '60px',      // ✨ ปรับเป็น 60px
-                        height: '60px',     // ✨ ปรับเป็น 60px
-                        objectFit: 'contain', // ป้องกันรูปบิดเบี้ยว
+                        width: '100px',
+                        height: '100px',
+                        objectFit: 'contain',
                         display: 'block',
                         margin: '0 auto' 
                       }}
