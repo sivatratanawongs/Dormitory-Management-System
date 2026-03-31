@@ -16,6 +16,7 @@ import type { BillingRoomState, BillingStatus } from "../../../../type/billing";
 import { TenantFrontendService } from "../../../../services/tenantService";
 
 const BillingPage = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   const [openDialog, setOpenDialog] = useState(false);
   const [rooms, setRooms] = useState<BillingRoomState[]>([]);
   const [recordDate, setRecordDate] = useState<Date | null>(new Date()); 
@@ -422,9 +423,9 @@ const BillingPage = () => {
                   {paymentSetting?.qrCodeUrl && (
                     <Box sx={{ textAlign: "center", ml: 2 }}>
                       <img 
-                        src={`http://localhost:5001${paymentSetting.qrCodeUrl}`} 
-                        alt="Payment QR" 
-                        style={{ width: 60, height: 60, objectFit: 'contain', border: '1px solid #e2e8f0', padding: '4px', borderRadius: '4px', backgroundColor: '#fff' }} 
+                        src={`${API_BASE_URL}${paymentSetting.qrCodeUrl}`} 
+                        alt="QR Code สำหรับชำระเงิน"
+                        style={{ width: '100%', maxWidth: '300px' }}
                       />
                       <Typography sx={{ fontSize: "0.65rem", color: "#64748b", mt: 0.5 }}>Scan เพื่อชำระ</Typography>
                     </Box>
