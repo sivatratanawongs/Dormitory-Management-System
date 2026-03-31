@@ -9,6 +9,7 @@ export interface ICreateBilling {
   roomPrice: number;
   totalAmount: number;
   status?: string;
+  billImageData?: string | null;
 }
 
 export interface IBulkBillingRequest {

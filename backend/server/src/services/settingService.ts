@@ -47,12 +47,11 @@ export const SettingService = {
     const config = await prisma.paymentSetting.findFirst();
     let qrUrl = data.qrCodeUrl;
 
-    // 📸 ถ้ามีการส่งไฟล์รูปมา ให้จัดการส่งขึ้น Supabase Storage
     if (file) {
       const fileName = `qr-${Date.now()}.jpg`;
       
       const { data: uploadData, error } = await supabase.storage
-        .from('qrcodes') // ชื่อ Bucket ที่คุณสร้าง
+        .from('qrcodes') 
         .upload(fileName, file.buffer, {
           contentType: file.mimetype,
           upsert: true
@@ -60,7 +59,6 @@ export const SettingService = {
 
       if (error) throw new Error(error.message);
 
-      // ดึง Public URL มาเก็บในฐานข้อมูล
       const { data: { publicUrl } } = supabase.storage
         .from('qrcodes')
         .getPublicUrl(fileName);

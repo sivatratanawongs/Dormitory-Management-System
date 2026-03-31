@@ -76,6 +76,7 @@ model Billing {
   totalAmount   Float
   status        String    @default("pending") 
   paidAt        DateTime?
+  billImageUrl   String?
 
   tenantId      String?   
   tenant        Tenant?   @relation(fields: [tenantId], references: [id])

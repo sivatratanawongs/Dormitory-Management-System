@@ -79,12 +79,18 @@ export const BillingService = {
     });
   },
 
-
   createBulkBillings: async (data: any[]) => {
-
     try {
       const results = await Promise.all(
         data.map(async (billData) => {
+          let finalImageUrl = null;
+
+          // 1. ถ้ามีรูปบิลส่งมาจากหน้าบ้าน ให้เอาขึ้น Supabase ทันที
+          if (billData.billImageData) {
+            finalImageUrl = await uploadToSupabase(billData.billImageData, billData.roomNumber);
+          }
+
+          // 2. บันทึกลง DB พร้อม URL รูปภาพ
           return await prisma.billing.create({
             data: {
               roomId: billData.roomId,
@@ -99,39 +105,27 @@ export const BillingService = {
               roomPrice: billData.roomPrice,
               totalAmount: billData.totalAmount,
               status: billData.status || "unpaid",
+              billImageUrl: finalImageUrl,
             },
             include: {
-              tenant: { select: { lineUserId: true, name: true } },
+              tenant: { select: { lineUserId: true } },
               room: { select: { roomNumber: true } }
             }
           });
         })
       );
 
+      for (const bill of results) {
+        const currentBill = bill as any; 
 
-      for (let i = 0; i < results.length; i++) {
-        const bill = results[i];
-        const originalData = data[i];
-
-        if (bill?.tenant?.lineUserId && originalData?.billImageData) {
-          
-          const publicImageUrl = await uploadToSupabase(originalData.billImageData, bill.room.roomNumber);
-
-          if (publicImageUrl) {
-            await LineService.sendBillingImage(bill.tenant.lineUserId, {
-              roomNumber: bill.room.roomNumber,
-              month: bill.month,
-              billImageData: publicImageUrl 
-            });
-          } else {
-            await LineService.sendBillingFlex(bill.tenant.lineUserId, bill);
-          }
-        } 
-        else if (bill?.tenant?.lineUserId) {
-          await LineService.sendBillingFlex(bill.tenant.lineUserId, bill);
+        if (currentBill.tenant?.lineUserId && currentBill.billImageUrl) {
+          await LineService.sendBillingImage(currentBill.tenant.lineUserId, {
+            roomNumber: currentBill.room?.roomNumber || 'N/A',
+            month: currentBill.month,
+            billImageData: currentBill.billImageUrl 
+          });
         }
       }
-
       return results;
     } catch (error) {
       console.error(error);
