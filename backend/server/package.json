@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "dev": "DATABASE_URL=\"file:../dev.db\" nodemon --exec npx tsx src/index.ts",
+    "dev": "nodemon --exec npx tsx src/index.ts",
     "build": "tsc",
-    "start": "DATABASE_URL=\"file:../dev.db\" node dist/index.js"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -30,5 +30,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "prisma": {
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
   }
 }
