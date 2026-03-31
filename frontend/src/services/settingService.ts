@@ -1,5 +1,5 @@
+import api from './api'; 
 import type { ICreateRoomInput, IRoom, IRoomType, IUpdateRoomInput } from "../type/room";
-import axios from 'axios';
 
 export interface ISystemSetting {
   id?: string;
@@ -17,61 +17,48 @@ export interface IPaymentSetting {
   qrCodeUrl: string | null;
 }
 
-const API_BASE_URL = 'http://localhost:5001/api/settings'; 
-const API_BASE = "http://localhost:5001/api/rooms";
+const SETTINGS_PATH = '/api/settings'; 
+const ROOMS_PATH = "/api/rooms";
 
 export const SettingService = {
 
-  // --- ส่วนของค่าน้ำ/ไฟ (System Settings) ---
   getSettings: async (): Promise<ISystemSetting> => {
-    const response = await fetch(`${API_BASE_URL}`);
-    if (!response.ok) throw new Error('ไม่สามารถดึงข้อมูลค่าน้ำไฟได้');
-    return response.json();
+    const response = await api.get<ISystemSetting>(SETTINGS_PATH);
+    return response.data;
   },
 
   updateSettings: async (data: ISystemSetting): Promise<ISystemSetting> => {
-    const response = await fetch(`${API_BASE_URL}/system`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('อัปเดตข้อมูลค่าน้ำไฟไม่สำเร็จ');
-    return response.json();
+    const response = await api.put<ISystemSetting>(`${SETTINGS_PATH}/system`, data);
+    return response.data;
   },
 
-  // --- ส่วนของบัญชีธนาคาร (Payment Settings) ---
   getPaymentSettings: async (): Promise<IPaymentSetting> => {
-    const response = await fetch(`${API_BASE_URL}/payment`);
-    if (!response.ok) throw new Error('ไม่สามารถดึงข้อมูลบัญชีธนาคารได้');
-    return response.json();
+    const response = await api.get<IPaymentSetting>(`${SETTINGS_PATH}/payment`);
+    return response.data;
   },
 
   updatePaymentSettings: async (formData: FormData): Promise<IPaymentSetting> => {
-    const response = await fetch(`${API_BASE_URL}/payment`, {
-      method: 'PUT',
-      body: formData,
-    });
-    if (!response.ok) throw new Error('อัปเดตข้อมูลบัญชีไม่สำเร็จ');
-    return response.json();
+    const response = await api.put<IPaymentSetting>(`${SETTINGS_PATH}/payment`, formData);
+    return response.data;
   },
 
   getRooms: async (): Promise<IRoom[]> => {
-    const response = await axios.get<IRoom[]>(API_BASE);
+    const response = await api.get<IRoom[]>(ROOMS_PATH);
     return response.data;
   },
 
   getRoomTypes: async (): Promise<IRoomType[]> => {
-    const response = await axios.get<IRoomType[]>(`${API_BASE}/types`); 
+    const response = await api.get<IRoomType[]>(`${ROOMS_PATH}/types`); 
     return response.data;
   },
 
   addRoom: async (data: ICreateRoomInput): Promise<IRoom> => {
-    const response = await axios.post<IRoom>(API_BASE, data);
+    const response = await api.post<IRoom>(ROOMS_PATH, data);
     return response.data;
   },
 
   updateBulkRooms: async (rooms: IUpdateRoomInput[]): Promise<{ message: string }> => {
-    const response = await axios.put<{ message: string }>(`${API_BASE}/bulk`, rooms);
+    const response = await api.put<{ message: string }>(`${ROOMS_PATH}/bulk`, rooms);
     return response.data;
   }
   

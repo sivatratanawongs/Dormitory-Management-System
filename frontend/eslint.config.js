@@ -5,14 +5,11 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default [
-  // 1. กำหนดไฟล์ที่ต้องการ Ignore
   { ignores: ['dist'] },
 
-  // 2. ใส่ Config พื้นฐานของ JS และ TypeScript
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // 3. กำหนดค่าสำหรับไฟล์ Project ของคุณ
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
