@@ -431,7 +431,7 @@ const BillingPage = () => {
                         src={getImageUrl(paymentSetting?.qrCodeUrl)} 
                         alt="QR Code"
                         crossOrigin="anonymous"
-                        style={{ width: '100%', maxWidth: '300px' }}
+                        style={{ width: '50%', maxWidth: '80px' }}
                         onLoad={() => console.log("QR Image Loaded")}
                       />
                       <Typography sx={{ fontSize: "0.65rem", color: "#64748b", mt: 0.5 }}>Scan เพื่อชำระ</Typography>
