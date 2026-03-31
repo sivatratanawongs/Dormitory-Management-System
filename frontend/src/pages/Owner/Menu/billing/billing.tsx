@@ -16,7 +16,7 @@ import type { BillingRoomState, BillingStatus } from "../../../../type/billing";
 import { TenantFrontendService } from "../../../../services/tenantService";
 
 const BillingPage = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+  const API_BASE_URL = import.meta.env.VITE_API_URL ;
   const [openDialog, setOpenDialog] = useState(false);
   const [rooms, setRooms] = useState<BillingRoomState[]>([]);
   const [recordDate, setRecordDate] = useState<Date | null>(new Date()); 
