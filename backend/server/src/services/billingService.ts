@@ -8,16 +8,23 @@ const prisma = new PrismaClient();
 
 async function uploadToSupabase(base64Data: string, roomNumber: string): Promise<string | null> {
   try {
-    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Image, 'base64');
+    if (!base64Data || !base64Data.includes('base64,')) {
+      console.error("❌ ข้อมูลไม่ใช่ Base64 ที่ถูกต้อง");
+      return null;
+    }
 
+    const base64Image = base64Data.split(';base64,').pop();
+    if (!base64Image) return null;
+
+    const buffer = Buffer.from(base64Image, 'base64');
     const fileName = `bills/room-${roomNumber}-${Date.now()}.jpg`;
 
     const { data, error } = await supabase.storage
       .from('qrcodes')
       .upload(fileName, buffer, {
         contentType: 'image/jpeg',
-        upsert: true
+        upsert: true,
+        cacheControl: '3600'
       });
 
     if (error) throw error;
@@ -32,6 +39,7 @@ async function uploadToSupabase(base64Data: string, roomNumber: string): Promise
     return null;
   }
 }
+
 
 export const BillingService = {
   getLastReadings: async () => {

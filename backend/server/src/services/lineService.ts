@@ -23,19 +23,10 @@ export const LineService = {
     }
 
     try {
-      // 1. บันทึกไฟล์รูป
-      const base64Data = data.billImageData.replace(/^data:image\/jpeg;base64,/, "");
-      const fileName = `bill-${data.roomNumber}-${data.month}.jpg`;
-      const uploadDir = path.join(process.cwd(), 'uploads', 'bills');
 
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
+      const imageUrl = data.billImageData; 
 
-      fs.writeFileSync(path.join(uploadDir, fileName), base64Data, 'base64');
-
-      // 2. ส่งไปที่ LINE
-      const imageUrl = `${SERVER_URL}/uploads/bills/${fileName}`;
+      console.log(`📡 ส่งรูปจาก Supabase ไปที่ LINE: ${imageUrl}`);
       
       await client.pushMessage({
         to: lineUserId,
@@ -45,9 +36,11 @@ export const LineService = {
           previewImageUrl: imageUrl
         }]
       });
+      
       console.log(`✅ LINE Image sent: Room ${data.roomNumber}`);
     } catch (error: any) {
-      console.error("❌ LINE Image Error:", error.body || error.message);
+      // พิมพ์ Error ออกมาดูให้ชัดเจน
+      console.error("❌ LINE Image Error Detail:", JSON.stringify(error.body || error.message, null, 2));
     }
   },
 
