@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { IPaymentSetting, ISystemSetting } from '../interfaces/setting.interface.js';
 import { createClient } from '@supabase/supabase-js';
+import path from 'node:path';
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
-
 const supabase = createClient(supabaseUrl, supabaseKey);
 const prisma = new PrismaClient();
 
@@ -45,19 +45,19 @@ export const SettingService = {
 
   async updatePaymentSettings(data: any, file?: Express.Multer.File): Promise<IPaymentSetting> {
     const config = await prisma.paymentSetting.findFirst();
-    let qrUrl = data.qrCodeUrl;
+    let qrUrl = config?.qrCodeUrl;
 
     if (file) {
-      const fileName = `qr-${Date.now()}.jpg`;
+      const fileName = `qr-${Date.now()}${path.extname(file.originalname)}`;
       
-      const { data: uploadData, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('qrcodes') 
         .upload(fileName, file.buffer, {
           contentType: file.mimetype,
           upsert: true
         });
 
-      if (error) throw new Error(error.message);
+      if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
         .from('qrcodes')

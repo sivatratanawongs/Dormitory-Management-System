@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { SettingService } from "../services/settingService.js";
-import { ISystemSetting, IPaymentSetting } from "../interfaces/setting.interface.js";
+import { ISystemSetting } from "../interfaces/setting.interface.js";
 
-// --- ส่วนของ System Settings (ค่าน้ำ/ไฟ) ---
 export const getSettings = async (_req: Request, res: Response): Promise<void> => {
   try {
     const settings = await SettingService.getSettings();
@@ -28,7 +27,6 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// --- ส่วนของ Payment Settings (บัญชีธนาคาร) ---
 export const getPaymentSettings = async (_req: Request, res: Response): Promise<void> => {
   try {
     const payment = await SettingService.getPaymentSettings();
@@ -40,18 +38,10 @@ export const getPaymentSettings = async (_req: Request, res: Response): Promise<
 
 export const updatePaymentSettings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { accountName, bankName, accountNumber } = req.body;
-    const updateData: Partial<IPaymentSetting> = {
-      accountName,
-      bankName,
-      accountNumber,
-    };
-    if (req.file) {
-      updateData.qrCodeUrl = `/uploads/qrcodes/${req.file.filename}`;
-    }
-    const updated = await SettingService.updatePaymentSettings(updateData);
+    const updated = await SettingService.updatePaymentSettings(req.body, req.file); 
     res.json(updated);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

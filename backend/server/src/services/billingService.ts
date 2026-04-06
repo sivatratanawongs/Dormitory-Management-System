@@ -65,7 +65,7 @@ export const BillingService = {
     return await prisma.billing.create({
       data: {
         roomId: data.roomId,
-        month: "START",
+        month: "เริ่มต้น",
         elecUnitPrev: data.elecReading,
         elecUnitCurr: data.elecReading,
         waterUnitPrev: data.waterReading,
