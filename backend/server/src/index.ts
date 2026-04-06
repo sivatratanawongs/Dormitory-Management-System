@@ -1,16 +1,13 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
+
 import dotenv from 'dotenv';
+import cors from 'cors';
+import express, { Request, Response } from 'express';
 import path from 'node:path'; 
-import { fileURLToPath } from 'node:url';
 import settingRoutes from './routes/settingRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import tenantRoutes from './routes/tenantRoutes.js';
 import lineRoutes from './routes/lineRoutes.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
