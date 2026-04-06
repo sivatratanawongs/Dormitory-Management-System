@@ -6,7 +6,6 @@ const menuItems = [
   { title: "บันทึกมิเตอร์", icon: <Calculator size={24} />, path: "/owner/billings" },
   { title: "ผู้เช่า", icon: <UserCircle size={24} />, path: "/owner/tenants" },
   { title: "ตั้งค่า", icon: <Settings size={24} />, path: "/owner/settings" },
-
 ];
 
 const OwnerLayout = () => {

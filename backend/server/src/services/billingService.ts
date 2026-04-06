@@ -35,7 +35,7 @@ async function uploadToSupabase(base64Data: string, roomNumber: string): Promise
 
     return publicUrl;
   } catch (err) {
-    console.error(`❌ Upload Error (Room ${roomNumber}):`, err);
+    console.error(err);
     return null;
   }
 }
@@ -85,12 +85,10 @@ export const BillingService = {
         data.map(async (billData) => {
           let finalImageUrl = null;
 
-          // 1. ถ้ามีรูปบิลส่งมาจากหน้าบ้าน ให้เอาขึ้น Supabase ทันที
           if (billData.billImageData) {
             finalImageUrl = await uploadToSupabase(billData.billImageData, billData.roomNumber);
           }
 
-          // 2. บันทึกลง DB พร้อม URL รูปภาพ
           return await prisma.billing.create({
             data: {
               roomId: billData.roomId,

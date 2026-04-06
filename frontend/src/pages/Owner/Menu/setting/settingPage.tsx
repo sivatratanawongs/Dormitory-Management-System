@@ -6,7 +6,7 @@ import RoomPriceTab from './tabs/roomPriceTab';
 import PaymentAccountTab from './tabs/paymentAccountTab';
 
 const SettingPage = () => {
-  const [tabValue, setTabValue] = useState(1);
+  const [tabValue, setTabValue] = useState(0);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
