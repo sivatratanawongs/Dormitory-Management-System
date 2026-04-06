@@ -9,7 +9,6 @@ async function main() {
   const roomTypes = [
     { name: 'ห้องพัดลม' },
     { name: 'ห้องแอร์' },
-    { name: 'ห้องแอร์ (VIP)' }
   ]
 
   for (const type of roomTypes) {
