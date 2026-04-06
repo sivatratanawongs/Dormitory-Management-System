@@ -1,15 +1,18 @@
-
+// --- 1. ต้องอยู่บนสุดของไฟล์เสมอ ---
 import dotenv from 'dotenv';
-import cors from 'cors';
+dotenv.config(); 
+
+// --- 2. ตามด้วย Library หลัก ---
 import express, { Request, Response } from 'express';
-import path from 'node:path'; 
+import cors from 'cors';
+import path from 'node:path';
+
+// --- 3. แล้วค่อยตามด้วย Routes ของเรา ---
 import settingRoutes from './routes/settingRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import tenantRoutes from './routes/tenantRoutes.js';
 import lineRoutes from './routes/lineRoutes.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
