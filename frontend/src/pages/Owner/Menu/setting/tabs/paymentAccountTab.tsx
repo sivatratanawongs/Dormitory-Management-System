@@ -93,13 +93,13 @@ const PaymentAccountTab = () => {
     }
   };
   const getImageUrl = (path: string | null) => {
-    if (!path) return null;
-    if (path.startsWith("data:")) return path;
-    
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
-    
-    return `${baseUrl}${path}`;
-  };
+  if (!path) return null;
+  if (path.startsWith("data:")) return path;
+  if (path.startsWith("http")) return path; 
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
+  return `${baseUrl}${path}`;
+};
+  
   const textFieldStyle = {
     "& .MuiInputBase-root.Mui-disabled": {
       backgroundColor: "#f1f5f9",
