@@ -44,6 +44,9 @@ export const SettingService = {
   },
 
   async updatePaymentSettings(data: any, file?: Express.Multer.File): Promise<IPaymentSetting> {
+    console.log("--- เริ่มการอัปเดตใน Service ---");
+    console.log("ไฟล์ที่รับมา:", file ? file.originalname : "ไม่มีไฟล์");
+
     const config = await prisma.paymentSetting.findFirst();
     let qrUrl = config?.qrCodeUrl;
 
@@ -64,6 +67,7 @@ export const SettingService = {
         .getPublicUrl(fileName);
       
       qrUrl = publicUrl;
+      console.log("URL ใหม่ที่ได้จาก Supabase:", qrUrl);
     }
 
     return await prisma.paymentSetting.update({
