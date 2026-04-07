@@ -7,6 +7,7 @@ import { SettingService } from '../../../../../services/settingService';
 import type{ IRoom, IRoomType } from '../../../../../type/room'
 import { BillingFrontendService } from '../../../../../services/billingService';
 import type { ITenantBillingHistory } from '../../../../../type/billing';
+import { useLoading } from '../../../../../components/LoadingContext';
 
 const RoomRow = ({ room, roomTypes, isEditing, onChange, onViewHistory }: { room: IRoom, roomTypes: IRoomType[], isEditing: boolean, onChange: <K extends keyof IRoom>(id: string, field: K, value: IRoom[K]) => void, onViewHistory: (id: string, num: string) => void}) => {
   
@@ -109,7 +110,7 @@ const RoomRow = ({ room, roomTypes, isEditing, onChange, onViewHistory }: { room
 };
 
 const RoomPriceTab = () => {
-  const [loading, setLoading] = useState(true);
+  const { showLoading, hideLoading } = useLoading();
   const [isEditing, setIsEditing] = useState(false);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [roomData, setRoomData] = useState<IRoom[]>([]);
@@ -134,7 +135,7 @@ const RoomPriceTab = () => {
 
   const loadInitialData = async () => {
     try {
-      setLoading(true);
+      showLoading();
       const [rooms, types] = await Promise.all([
         SettingService.getRooms(),
         SettingService.getRoomTypes()
@@ -151,7 +152,7 @@ const RoomPriceTab = () => {
     } catch (error) {
       console.error("Fetch Error:", error);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
@@ -191,6 +192,7 @@ const RoomPriceTab = () => {
 
   const handleViewHistory = async (roomId: string, roomNumber: string) => {
     try {
+      showLoading();
       setPage(0);
       setSelectedRoomNumber(roomNumber);
       setHistoryDialogOpen(true);
@@ -200,6 +202,7 @@ const RoomPriceTab = () => {
     } catch (error) {
       console.error(error);
     } finally {
+      hideLoading();
       setHistoryLoading(false);
     }
   };
@@ -210,7 +213,6 @@ const RoomPriceTab = () => {
 
   const isFormValid = newRoom.roomNumber.trim() !== '' && newRoom.floor > 0 && newRoom.basePrice > 0;
 
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>;
 
   return (
     <Box>

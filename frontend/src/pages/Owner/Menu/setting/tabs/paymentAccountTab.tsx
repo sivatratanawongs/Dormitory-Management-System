@@ -7,7 +7,6 @@ import {
   Card,
   CardMedia,
   IconButton,
-  CircularProgress,
   MenuItem,
   ListItemIcon,
   ListItemText,
@@ -17,6 +16,7 @@ import {
   SettingService,
   type IPaymentSetting,
 } from "../../../../../services/settingService";
+import { useLoading } from '../../../../../components/LoadingContext';
 
 const BANKS = [
   { name: "กสิกรไทย", logo: "/assets/banks/KBANK.jpg" },
@@ -28,7 +28,7 @@ const BANKS = [
 ];
 
 const PaymentAccountTab = () => {
-  const [loading, setLoading] = useState(true);
+  const { showLoading, hideLoading } = useLoading();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,17 +43,18 @@ const PaymentAccountTab = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        showLoading();
         const data = await SettingService.getPaymentSettings();
         setAccountInfo(data);
         setTempInfo(data);
       } catch (error) {
         console.error("Failed to load payment settings:", error);
       } finally {
-        setLoading(false);
+        hideLoading();
       }
     };
     loadData();
-  }, []);
+  }, [showLoading, hideLoading]);
 
   const handleStartEdit = () => {
     setTempInfo({ ...accountInfo });
@@ -75,6 +76,7 @@ const PaymentAccountTab = () => {
 
   const handleSave = async () => {
     try {
+      showLoading();
       const formData = new FormData();
       formData.append("accountName", tempInfo.accountName || "");
       formData.append("bankName", tempInfo.bankName || "");
@@ -90,6 +92,8 @@ const PaymentAccountTab = () => {
       setSelectedFile(null);
     } catch (error) {
       console.error(error);
+    }finally {
+      hideLoading();
     }
   };
   const getImageUrl = (path: string | null) => {
@@ -113,13 +117,6 @@ const PaymentAccountTab = () => {
       borderRadius: 2,
     },
   };
-
-  if (loading)
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}>
-        <CircularProgress />
-      </Box>
-    );
 
   return (
     <Box>

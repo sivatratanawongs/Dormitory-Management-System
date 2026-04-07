@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, TextField, Button, InputAdornment, CircularProgress } from '@mui/material';
+import { Box, Typography, TextField, Button, InputAdornment } from '@mui/material';
 import { Edit3, X, Check, Zap, Droplets, Settings2, Home } from 'lucide-react';
 import { SettingService, type ISystemSetting } from '../../../../../services/settingService';
 import { type ITempUtilityData } from '../models/moedel'
+import { useLoading } from '../../../../../components/LoadingContext';
 
 interface RateHistory {
   id: string;
@@ -13,7 +14,7 @@ interface RateHistory {
 }
 
 const UtilityTab = () => {
-  const [loading, setLoading] = useState(true);
+  const { showLoading, hideLoading } = useLoading();
   const [isEditing, setIsEditing] = useState(false);
   const [utilityData, setUtilityData] = useState({
     electricityRate: 0,
@@ -26,6 +27,7 @@ const UtilityTab = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        showLoading();
         const data = await SettingService.getSettings();
         const mappedData = {
           electricityRate: data.elecRate,
@@ -38,11 +40,11 @@ const UtilityTab = () => {
       } catch (error) {
         console.error("Failed to load settings:", error);
       } finally {
-        setLoading(false);
+        hideLoading();
       }
     };
     loadData();
-  }, []);
+  }, [showLoading, hideLoading]);
   
   const handleFieldChange = (field: keyof ITempUtilityData, value: string) => {
       setTempData((prev) => ({
@@ -58,13 +60,13 @@ const UtilityTab = () => {
 
   const handleSave = async () => {
     try {
+      showLoading();
       const dataToSave: ISystemSetting = {
         elecRate: Number(tempData.electricityRate),
         waterRate: Number(tempData.waterRate),
         commonFee: Number(tempData.commonFee),
         waterMinUnit: Number(tempData.minWaterUnit),
       };
-
       await SettingService.updateSettings(dataToSave);
       
       const newLogs: RateHistory[] = [];
@@ -96,6 +98,8 @@ const UtilityTab = () => {
       setIsEditing(false);
     } catch (error) {
       console.error(error);
+    } finally {
+      hideLoading(); 
     }
   };
 
@@ -120,14 +124,6 @@ const UtilityTab = () => {
       textAlign: 'right',
     }
   };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box>

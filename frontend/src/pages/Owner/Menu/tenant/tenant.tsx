@@ -67,7 +67,7 @@ const TenantsPage = () => {
       
       await loadAllData(); 
     } catch (err) {
-      console.error("Move out error:", err);
+      console.error(err);
     } finally {
       hideLoading();
       setIsMoveOutOpen(false);
