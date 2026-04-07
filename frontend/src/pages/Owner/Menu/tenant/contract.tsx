@@ -400,41 +400,41 @@ const ContractPage = () => {
               <FileText size={20} color="#6366f1" />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>เงื่อนไขสัญญาเช่า</Typography>
             </Box>
+
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
-              {[
-                { label: "วันที่ทำสัญญา", value: formData.contractDate, key: "contractDate" },
-                { label: "วันที่เริ่มเข้าพัก", value: formData.moveInDate, key: "moveInDate" },
-                { label: "วันที่สิ้นสุดสัญญา", value: formData.contractEndDate, key: "contractEndDate" }
-              ].map((item) => (
-                <Box key={item.key} sx={{ 
-                  '& .react-datepicker-wrapper': { width: '100%' } 
-                }}>
-              <DatePicker
-                selected={item.value ? new Date(item.value) : null}
-                onChange={(date: Date | null) => {
-                  if (date) setFormData({...formData, [item.key]: date.toISOString().split('T')[0]});
-                }}
-                locale={th}
-                value={formatInputDate(item.value)}
-                portalId="root-portal" 
-                popperClassName="custom-datepicker-popper"
-                customInput={
-                  <TextField 
-                    fullWidth 
-                    size="small"
-                    label={item.label}
-                    slotProps={{ inputLabel: { shrink: true } }} 
-                    sx={{ 
-                      bgcolor: 'white', 
-                      borderRadius: 2,
-                      '& .MuiOutlinedInput-root': { bgcolor: 'white' },
-                      '& input': { cursor: 'pointer' }
-                    }} 
-                  />
-                }
-              />
-            </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
+                {[
+                  { label: "วันที่ทำสัญญา", value: formData.contractDate, key: "contractDate" },
+                  { label: "วันที่เริ่มเข้าพัก", value: formData.moveInDate, key: "moveInDate" },
+                  { label: "วันที่สิ้นสุดสัญญา", value: formData.contractEndDate, key: "contractEndDate" }
+                ].map((item) => (
+                  <Box key={item.key} sx={{ 
+                    '& .react-datepicker-wrapper': { width: '100%' } 
+                  }}>
+                <DatePicker
+                  selected={item.value ? new Date(item.value) : null}
+                  onChange={(date: Date | null) => {
+                    if (date) setFormData({...formData, [item.key]: date.toISOString().split('T')[0]});
+                  }}
+                  locale={th}
+                  value={formatInputDate(item.value)}
+                  portalId="root-portal" 
+                  popperClassName="custom-datepicker-popper"
+                  customInput={
+                    <TextField 
+                      fullWidth 
+                      label={item.label}
+                      slotProps={{ inputLabel: { shrink: true } }} 
+                      sx={{ 
+                        bgcolor: 'white', 
+                        borderRadius: 2,
+                        '& .MuiOutlinedInput-root': { bgcolor: 'white' },
+                        '& input': { cursor: 'pointer' }
+                      }} 
+                    />
+                  }
+                />
+              </Box>
             ))}
           </Box>
               <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
