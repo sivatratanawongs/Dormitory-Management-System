@@ -110,7 +110,7 @@ const RoomRow = ({ room, roomTypes, isEditing, onChange, onViewHistory }: { room
 };
 
 const RoomPriceTab = () => {
-  const { showLoading, hideLoading } = useLoading();
+  const { withLoading } = useLoading();
   const [isEditing, setIsEditing] = useState(false);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [roomData, setRoomData] = useState<IRoom[]>([]);
@@ -131,15 +131,12 @@ const RoomPriceTab = () => {
     floor: 1,
   });
 
-  useEffect(() => { loadInitialData();}, []);
-
   const loadInitialData = async () => {
     try {
-      showLoading();
-      const [rooms, types] = await Promise.all([
+      const [rooms, types] = await withLoading(Promise.all([
         SettingService.getRooms(),
         SettingService.getRoomTypes()
-      ]);
+      ]));
       const sortedRooms = [...rooms].sort((a, b) => {
         return a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true, sensitivity: 'base' });
       });
@@ -147,14 +144,12 @@ const RoomPriceTab = () => {
       setRoomData(sortedRooms);
       setTempData(sortedRooms);
       setRoomTypes(types);
-      
       if (types.length > 0) setNewRoom(prev => ({ ...prev, roomTypeId: types[0].id }));
     } catch (error) {
       console.error("Fetch Error:", error);
-    } finally {
-      hideLoading();
     }
   };
+  useEffect(() => { loadInitialData(); }, [withLoading]);
 
   const handleRoomChange = <K extends keyof IRoom>( id: string, field: K, value: IRoom[K] ) => {
     setTempData(prev => 
@@ -164,14 +159,16 @@ const RoomPriceTab = () => {
 
   const handleSaveAll = async () => {
     try {
-      await SettingService.updateBulkRooms(tempData.map(r => ({
+      const updatedRooms = tempData.map(r => ({
         id: r.id,
         roomNumber: r.roomNumber,
         floor: r.floor,
         roomTypeId: r.roomTypeId,
         basePrice: r.basePrice,
         description: r.description
-      })));
+      }));
+
+      await withLoading(SettingService.updateBulkRooms(updatedRooms));
       setRoomData([...tempData]);
       setIsEditing(false);
     } catch (error) {
@@ -181,18 +178,17 @@ const RoomPriceTab = () => {
 
   const handleAddNewRoom = async () => {
     try {
-      await SettingService.addRoom(newRoom);
+      await withLoading(SettingService.addRoom(newRoom));
       await loadInitialData();
       setOpenAddDialog(false);
       setNewRoom({ roomNumber: '', floor: 1, roomTypeId: roomTypes[0]?.id || '', basePrice: 0, description: '' });
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  };
+  }
 
   const handleViewHistory = async (roomId: string, roomNumber: string) => {
     try {
-      showLoading();
       setPage(0);
       setSelectedRoomNumber(roomNumber);
       setHistoryDialogOpen(true);
@@ -202,7 +198,6 @@ const RoomPriceTab = () => {
     } catch (error) {
       console.error(error);
     } finally {
-      hideLoading();
       setHistoryLoading(false);
     }
   };

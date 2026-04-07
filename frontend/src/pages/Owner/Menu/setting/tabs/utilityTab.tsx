@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, InputAdornment } from '@mui/materia
 import { Edit3, X, Check, Zap, Droplets, Settings2, Home } from 'lucide-react';
 import { SettingService, type ISystemSetting } from '../../../../../services/settingService';
 import { type ITempUtilityData } from '../models/moedel'
+
 import { useLoading } from '../../../../../components/LoadingContext';
 
 interface RateHistory {
@@ -14,7 +15,8 @@ interface RateHistory {
 }
 
 const UtilityTab = () => {
-  const { showLoading, hideLoading } = useLoading();
+  const { withLoading } = useLoading();
+
   const [isEditing, setIsEditing] = useState(false);
   const [utilityData, setUtilityData] = useState({
     electricityRate: 0,
@@ -27,8 +29,7 @@ const UtilityTab = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        showLoading();
-        const data = await SettingService.getSettings();
+        const data = await withLoading(SettingService.getSettings());
         const mappedData = {
           electricityRate: data.elecRate,
           waterRate: data.waterRate,
@@ -38,13 +39,11 @@ const UtilityTab = () => {
         setUtilityData(mappedData);
         setTempData(mappedData);
       } catch (error) {
-        console.error("Failed to load settings:", error);
-      } finally {
-        hideLoading();
+        console.error(error);
       }
     };
     loadData();
-  }, [showLoading, hideLoading]);
+  }, [withLoading]);
   
   const handleFieldChange = (field: keyof ITempUtilityData, value: string) => {
       setTempData((prev) => ({
@@ -60,16 +59,19 @@ const UtilityTab = () => {
 
   const handleSave = async () => {
     try {
-      showLoading();
       const dataToSave: ISystemSetting = {
         elecRate: Number(tempData.electricityRate),
         waterRate: Number(tempData.waterRate),
         commonFee: Number(tempData.commonFee),
         waterMinUnit: Number(tempData.minWaterUnit),
       };
-      await SettingService.updateSettings(dataToSave);
+
+      await withLoading(SettingService.updateSettings(dataToSave));
       
       const newLogs: RateHistory[] = [];
+      if (newLogs.length > 0) {
+        console.log(newLogs);
+      }
       const fields: Array<{ key: keyof typeof utilityData, label: RateHistory['type'] }> = [
         { key: 'electricityRate', label: 'ไฟ' },
         { key: 'waterRate', label: 'น้ำ' },
@@ -98,8 +100,6 @@ const UtilityTab = () => {
       setIsEditing(false);
     } catch (error) {
       console.error(error);
-    } finally {
-      hideLoading(); 
     }
   };
 

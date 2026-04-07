@@ -5,6 +5,7 @@ import { Backdrop } from "@mui/material";
 interface LoadingContextType {
   showLoading: () => void;
   hideLoading: () => void;
+  withLoading: <T>(apiPromise: Promise<T>, minDelay?: number) => Promise<T>;
 }
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
@@ -15,10 +16,23 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const showLoading = useCallback(() => setLoading(true), []);
   const hideLoading = useCallback(() => setLoading(false), []);
 
+  const withLoading = useCallback(async <T,>(apiPromise: Promise<T>, minDelay = 3000): Promise<T> => {
+    showLoading();
+    const timer = new Promise((resolve) => setTimeout(resolve, minDelay));
+    
+    try {
+      const [result] = await Promise.all([apiPromise, timer]);
+      return result;
+    } finally {
+      hideLoading();
+    }
+  }, [showLoading, hideLoading]);
+
   const contextValue = useMemo(() => ({
     showLoading,
-    hideLoading
-  }), [showLoading, hideLoading]);
+    hideLoading,
+    withLoading
+  }), [showLoading, hideLoading, withLoading]);
 
   return (
     <LoadingContext.Provider value={contextValue}>

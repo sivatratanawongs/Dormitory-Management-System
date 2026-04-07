@@ -1,21 +1,7 @@
 import  { useState, useRef, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardMedia,
-  IconButton,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
+import { Box, Typography, TextField, Button, Card, CardMedia, IconButton, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import { Edit3, X, Check, Upload, Trash2 } from "lucide-react";
-import {
-  SettingService,
-  type IPaymentSetting,
-} from "../../../../../services/settingService";
+import { SettingService, type IPaymentSetting } from "../../../../../services/settingService";
 import { useLoading } from '../../../../../components/LoadingContext';
 
 const BANKS = [
@@ -28,7 +14,7 @@ const BANKS = [
 ];
 
 const PaymentAccountTab = () => {
-  const { showLoading, hideLoading } = useLoading();
+  const { withLoading } = useLoading();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,27 +26,6 @@ const PaymentAccountTab = () => {
   });
 
   const [tempInfo, setTempInfo] = useState<IPaymentSetting>({ ...accountInfo });
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        showLoading();
-        const timer = new Promise((resolve) => setTimeout(resolve, 3000));
-        const [data] = await Promise.all([
-          SettingService.getPaymentSettings(),
-          timer
-        ]);
-
-        setAccountInfo(data);
-        setTempInfo(data);
-      }catch (error) {
-        console.error(error);
-      }finally {
-        hideLoading();
-      }
-    };
-    loadData();
-  }, [showLoading, hideLoading]);
 
   const handleStartEdit = () => {
     setTempInfo({ ...accountInfo });
@@ -82,9 +47,6 @@ const PaymentAccountTab = () => {
 
   const handleSave = async () => {
     try {
-      showLoading();
-      const timer = new Promise((resolve) => setTimeout(resolve, 3000));
-
       const formData = new FormData();
       formData.append("accountName", tempInfo.accountName || "");
       formData.append("bankName", tempInfo.bankName || "");
@@ -94,17 +56,13 @@ const PaymentAccountTab = () => {
         formData.append("qrImage", selectedFile);
       }
 
-      const [updated] = await Promise.all([
-        SettingService.updatePaymentSettings(formData),
-        timer
-      ]);
+      const updated = await withLoading(SettingService.updatePaymentSettings(formData));
+
       setAccountInfo(updated);
       setIsEditing(false);
       setSelectedFile(null);
     }catch (error) {
       console.error(error);
-    }finally {
-      hideLoading();
     }
   };
   
@@ -134,6 +92,19 @@ const PaymentAccountTab = () => {
   const overlayBgColor = currentQrCode ? "rgba(0,0,0,0.4)" : "transparent";
   const displayQrCode = isEditing ? tempInfo.qrCodeUrl : accountInfo.qrCodeUrl;
   const qrImageUrl = getImageUrl(displayQrCode);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await withLoading(SettingService.getPaymentSettings());
+        setAccountInfo(data);
+        setTempInfo(data);
+      }catch (error) {
+        console.error(error);
+      }
+    };
+    loadData();
+  }, [withLoading]);
 
   return (
     <Box>
