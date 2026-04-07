@@ -197,51 +197,53 @@ const BillingPage = () => {
           </Typography>
         </Box>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' ,width: { xs: "100%", md: "auto" }}}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' ,width: { xs: "100%", md: "auto" }}}>            
             <DatePicker
-  label="วันที่จดหน่วย"
-  value={recordDate}
-  onChange={(newValue) => setRecordDate(newValue)}
-  // ใส่ key เพื่อบังคับให้ Component เกิดการ Re-render ใหม่ยกชุดเมื่อค่าเปลี่ยน
-  key={`record-${recordDate?.getTime()}`} 
-  slotProps={{
-    textField: {
-      size: 'small',
-      // บังคับการแสดงผลเป็น พ.ศ.
-      value: formatThaiDate(recordDate),
-      InputProps: { readOnly: true }, // ป้องกันการพิมพ์เอง
-      onClick: (e) => {
-        const button = e.currentTarget.querySelector('button');
-        if (button) button.click();
-      },
-      sx: { 
-        width: 300, 
-        cursor: 'pointer',
-        '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
-      }
-    }
-  }}
-/>
-
-<DatePicker
-  label="รอบบิลประจำเดือน"
-  views={['year', 'month']}
-  value={billingMonth}
-  onChange={(newValue) => setBillingMonth(newValue)}
-  key={`billing-${billingMonth?.getTime()}`}
-  slotProps={{
-    textField: {
-      size: 'small',
-      value: formatThaiDate(billingMonth, true),
-      InputProps: { readOnly: true },
-      onClick: (e) => {
-        const button = e.currentTarget.querySelector('button');
-        if (button) button.click();
-      },
-      sx: { width: 300, cursor: 'pointer' }
-    }
-  }}
-/>
+              label="วันที่จดหน่วย"
+              value={recordDate}
+              onChange={(newValue) => setRecordDate(newValue)}
+              key={`record-${recordDate?.getTime()}`} 
+              format="dd/MM/yyyy"
+              slotProps={{
+                textField: {
+                  size: 'small',
+                  InputProps: {
+                    readOnly: true,
+                    value: formatThaiDate(recordDate),
+                  },
+                  onClick: (e) => {
+                    const button = e.currentTarget.querySelector('button');
+                    if (button) button.click();
+                  },
+                  sx: { 
+                    width: 300, 
+                    cursor: 'pointer',
+                    '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
+                  }
+                }
+              }}
+            />
+            <DatePicker
+              label="รอบบิลประจำเดือน"
+              views={['year', 'month']}
+              value={billingMonth}
+              onChange={(newValue) => setBillingMonth(newValue)}
+              key={`billing-${billingMonth?.getTime()}`}
+              slotProps={{
+                textField: {
+                  size: 'small',
+                  InputProps: {
+                    readOnly: true,
+                    value: formatThaiDate(billingMonth, true),
+                  },
+                  onClick: (e) => {
+                    const button = e.currentTarget.querySelector('button');
+                    if (button) button.click();
+                  },
+                  sx: { width: 300, cursor: 'pointer' }
+                }
+              }}
+            />
           </Box>
         </LocalizationProvider>
       </Box>
