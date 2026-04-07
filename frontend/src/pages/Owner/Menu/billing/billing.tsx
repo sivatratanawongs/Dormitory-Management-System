@@ -197,20 +197,17 @@ const BillingPage = () => {
           </Typography>
         </Box>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' ,width: { xs: "100%", md: "auto" }}}>            
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: "100%", md: "auto" } }}>
             <DatePicker
               label="วันที่จดหน่วย"
               value={recordDate}
               onChange={(newValue) => setRecordDate(newValue)}
-              key={`record-${recordDate?.getTime()}`} 
-              format="dd/MM/yyyy"
+              key={`rec-${recordDate?.getTime()}`} 
               slotProps={{
                 textField: {
                   size: 'small',
-                  InputProps: {
-                    readOnly: true,
-                    value: formatThaiDate(recordDate),
-                  },
+                  value: formatThaiDate(recordDate), 
+                  inputProps: { readOnly: true },
                   onClick: (e) => {
                     const button = e.currentTarget.querySelector('button');
                     if (button) button.click();
@@ -228,14 +225,12 @@ const BillingPage = () => {
               views={['year', 'month']}
               value={billingMonth}
               onChange={(newValue) => setBillingMonth(newValue)}
-              key={`billing-${billingMonth?.getTime()}`}
+              key={`bill-${billingMonth?.getTime()}`}
               slotProps={{
                 textField: {
                   size: 'small',
-                  InputProps: {
-                    readOnly: true,
-                    value: formatThaiDate(billingMonth, true),
-                  },
+                  value: formatThaiDate(billingMonth, true),
+                  inputProps: { readOnly: true },
                   onClick: (e) => {
                     const button = e.currentTarget.querySelector('button');
                     if (button) button.click();
@@ -244,6 +239,7 @@ const BillingPage = () => {
                 }
               }}
             />
+            
           </Box>
         </LocalizationProvider>
       </Box>
