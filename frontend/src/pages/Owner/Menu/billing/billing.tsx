@@ -34,7 +34,7 @@ import {
   type ISystemSetting,
 } from "../../../../services/settingService";
 //Type
-import type { BillingRoomState, BillingStatus } from "../../../../type/billing";
+import type { BillingRoomState, BillingStatus, ICreateBilling } from "../../../../type/billing";
 import { TenantFrontendService } from "../../../../services/tenantService";
 import { useLoading } from "../../../../components/LoadingContext";
 
@@ -84,84 +84,84 @@ const BillingPage = () => {
     setRooms(rooms.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   };
 
-const handleConfirmAndSave = async () => {
-  if (!systemSetting) return;
+  const handleConfirmAndSave = async () => {
+    if (!systemSetting) return;
 
-  try {
-    const activeRooms = rooms.filter((room) => room.tenantId !== null);
-    const emptyRooms = rooms.filter((room) => room.tenantId === null);
+    try {
+      const activeRooms = rooms.filter((room) => room.tenantId !== null);
+      const emptyRooms = rooms.filter((room) => room.tenantId === null);
 
-    const activeBillings = await Promise.all(
-      activeRooms.map(async (room) => {
-        let base64Image = null;
-        if (billRefs.current[room.id]) {
-          const element = billRefs.current[room.id];
-          if (element) {
-            const canvas = await html2canvas(element, {
-              scale: 0.8, // ลดลงอีกนิดเพื่อความชัวร์
-              useCORS: true,
-              backgroundColor: "#ffffff",
-            });
-            // ✨ เปลี่ยนเป็น jpeg 0.6 ขนาดจะเล็กลงมหาศาล ช่วยให้ Backend ทำงานไหว
-            base64Image = canvas.toDataURL("image/jpeg", 0.6);
+      const activeBillings: ICreateBilling[] = await Promise.all(
+        activeRooms.map(async (room) => {
+          const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
+          const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
+          
+          let base64Image: string | null = null;
+          if (billRefs.current[room.id]) {
+            const element = billRefs.current[room.id];
+            if (element) {
+              const canvas = await html2canvas(element, {
+                scale: 0.8,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+              });
+              base64Image = canvas.toDataURL("image/jpeg", 0.7); 
+            }
+          }
+
+          return {
+            roomId: room.id,
+            tenantId: room.tenantId,
+            month: format(billingMonth || new Date(), "yyyy-MM"),
+            elecUnitPrev: room.prevElec,
+            elecUnitCurr: currentElecVal,
+            waterUnitPrev: room.prevWater,
+            waterUnitCurr: currentWaterVal,
+            roomPrice: room.roomPrice,
+            elecRate: systemSetting.elecRate,
+            waterRate: systemSetting.waterRate,
+            totalAmount: calculateTotal(room),
+            status: "pending" as BillingStatus,
+            billImageData: base64Image,
+          };
+        })
+      );
+
+      const emptyBillings: ICreateBilling[] = emptyRooms.map((room) => ({
+        roomId: room.id,
+        tenantId: null, 
+        month: format(billingMonth || new Date(), "yyyy-MM"),
+        elecUnitPrev: room.prevElec,
+        elecUnitCurr: room.prevElec,
+        waterUnitPrev: room.prevWater,
+        waterUnitCurr: room.prevWater,
+        roomPrice: 0,
+        elecRate: systemSetting.elecRate,
+        waterRate: systemSetting.waterRate,
+        totalAmount: 0,
+        status: "no_tenant" as BillingStatus,
+        billImageData: null,
+      }));
+
+      const allBillings: ICreateBilling[] = [...activeBillings, ...emptyBillings];
+
+      if (allBillings.length === 0) return;
+
+      await withLoading((async () => {
+        try {
+          await BillingFrontendService.createBulk(allBillings);
+          setOpenDialog(false);
+          globalThis.location.reload();
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.error("Save Error:", error.message);
           }
         }
-
-        return {
-          roomId: room.id,
-          roomNumber: room.roomNumber, // ต้องส่งเพื่อให้ Backend ตั้งชื่อไฟล์ได้
-          tenantId: room.tenantId,
-          month: format(billingMonth || new Date(), "yyyy-MM"),
-          elecUnitPrev: room.prevElec,
-          elecUnitCurr: room.currentElec === "" ? room.prevElec : Number(room.currentElec),
-          waterUnitPrev: room.prevWater,
-          waterUnitCurr: room.currentWater === "" ? room.prevWater : Number(room.currentWater),
-          roomPrice: room.roomPrice,
-          elecRate: systemSetting.elecRate,
-          waterRate: systemSetting.waterRate,
-          totalAmount: calculateTotal(room),
-          status: "pending" as BillingStatus,
-          billImageData: base64Image,
-        };
-      })
-    );
-
-    const emptyBillings = emptyRooms.map((room) => ({
-      roomId: room.id,
-      roomNumber: room.roomNumber,
-      tenantId: null, 
-      month: format(billingMonth || new Date(), "yyyy-MM"),
-      elecUnitPrev: room.prevElec,
-      elecUnitCurr: room.prevElec,
-      waterUnitPrev: room.prevWater,
-      waterUnitCurr: room.prevWater,
-      roomPrice: 0,
-      elecRate: systemSetting.elecRate,
-      waterRate: systemSetting.waterRate,
-      totalAmount: 0,
-      status: "no_tenant" as BillingStatus,
-      billImageData: null,
-    }));
-
-    const allBillings = [...activeBillings, ...emptyBillings];
-    if (allBillings.length === 0) return;
-
-    await withLoading((async () => {
-      try {
-        await BillingFrontendService.createBulk(allBillings);
-        setOpenDialog(false);
-        globalThis.location.reload();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        console.error("Save Error:", error);
-        // แสดง Alert เพื่อดูว่า Server บ่นว่าอะไรกันแน่
-        alert("บันทึกไม่สำเร็จ (500): " + (error.response?.data?.message || "Server รับข้อมูลขนาดใหญ่ไม่ไหว หรือ Database ติดขัด"));
-      }
-    })());
-  } catch (error) {
-    console.error("Process Error:", error);
-  }
-};
+      })());
+    } catch (error: unknown) {
+      console.error("Process Error:", error);
+    }
+  };
 
   const formatThaiDate = (date: Date | null, isMonthOnly = false) => {
     if (!date || Number.isNaN(date.getTime())) return "";
