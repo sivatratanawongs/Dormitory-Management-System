@@ -397,67 +397,86 @@ const ContractPage = () => {
           </Paper>
 
           <Paper sx={{ p: 3, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-              <FileText size={20} color="#6366f1" />
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>เงื่อนไขสัญญาเช่า</Typography>
-            </Box>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+    <FileText size={20} color="#6366f1" />
+    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>เงื่อนไขสัญญาเช่า</Typography>
+  </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>                
-                <Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', ml: 1, mb: 0.5, display: 'block' }}>
-                    วันที่ทำสัญญา
-                  </Typography>
-                  <DatePicker
-                    selected={new Date(formData.contractDate)}
-                    onChange={(date: Date | null) => {
-                      if (date) setFormData({...formData, contractDate: date.toISOString().split('T')[0]});
-                    }}
-                    locale={th}
-                    value={formatInputDate(formData.contractDate)}
-                    customInput={
-                      <TextField fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' } }} />
-                    }
-                  />
-                </Box>
+  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+    
+    {/* ส่วนวันที่: ปรับปรุงให้เหมือน TextField ปกติ */}
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
+      
+      {/* 1. วันที่ทำสัญญา */}
+      <Box sx={{ position: 'relative' }}>
+        <DatePicker
+          selected={new Date(formData.contractDate)}
+          onChange={(date: Date | null) => {
+            if (date) setFormData({...formData, contractDate: date.toISOString().split('T')[0]});
+          }}
+          locale={th}
+          value={formatInputDate(formData.contractDate)} 
+          customInput={
+            <TextField 
+              fullWidth 
+              size="small" 
+              label="วันที่ทำสัญญา" // ใส่ Label ที่นี่
+              // ทำให้ Label ลอยอยู่บนขอบ (เหมือน TextField อื่นๆ)
+              slotProps={{ inputLabel: { shrink: true } }} 
+              sx={{ 
+                bgcolor: 'white', 
+                borderRadius: 2,
+                '& .MuiOutlinedInput-root': { bgcolor: 'white' },
+                '& input': { cursor: 'pointer' } // ทำให้ลูกศรเป็นรูปมือตอนชี้
+              }} 
+            />
+          }
+        />
+      </Box>
 
-                {/* วันที่เริ่มเข้าพัก */}
-                <Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', ml: 1, mb: 0.5, display: 'block' }}>
-                    วันที่เริ่มเข้าพัก
-                  </Typography>
-                  <DatePicker
-                    selected={new Date(formData.moveInDate)}
-                    onChange={(date: Date | null) => {
-                      if (date) setFormData({...formData, moveInDate: date.toISOString().split('T')[0]});
-                    }}
-                    locale={th}
-                    value={formatInputDate(formData.moveInDate)}
-                    customInput={
-                      <TextField fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' } }} />
-                    }
-                  />
-                </Box>
+      {/* 2. วันที่เริ่มเข้าพัก */}
+      <Box sx={{ position: 'relative' }}>
+        <DatePicker
+          selected={new Date(formData.moveInDate)}
+          onChange={(date: Date | null) => {
+            if (date) setFormData({...formData, moveInDate: date.toISOString().split('T')[0]});
+          }}
+          locale={th}
+          value={formatInputDate(formData.moveInDate)}
+          customInput={
+            <TextField 
+              fullWidth 
+              size="small" 
+              label="วันที่เริ่มเข้าพัก" 
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={{ bgcolor: 'white', borderRadius: 2 }} 
+            />
+          }
+        />
+      </Box>
 
-                {/* วันที่สิ้นสุดสัญญา */}
-                <Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', ml: 1, mb: 0.5, display: 'block' }}>
-                    วันที่สิ้นสุดสัญญา
-                  </Typography>
-                  <DatePicker
-                    selected={formData.contractEndDate ? new Date(formData.contractEndDate) : null}
-                    onChange={(date: Date | null) => {
-                      if (date) setFormData({...formData, contractEndDate: date.toISOString().split('T')[0]});
-                    }}
-                    locale={th}
-                    value={formatInputDate(formData.contractEndDate)}
-                    customInput={
-                      <TextField fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' } }} />
-                    }
-                  />
-                </Box>
-                
-              </Box>
+      {/* 3. วันที่สิ้นสุดสัญญา */}
+      <Box sx={{ position: 'relative' }}>
+        <DatePicker
+          selected={formData.contractEndDate ? new Date(formData.contractEndDate) : null}
+          onChange={(date: Date | null) => {
+            if (date) setFormData({...formData, contractEndDate: date.toISOString().split('T')[0]});
+          }}
+          locale={th}
+          value={formatInputDate(formData.contractEndDate)}
+          customInput={
+            <TextField 
+              fullWidth 
+              size="small" 
+              label="วันที่สิ้นสุดสัญญา" 
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={{ bgcolor: 'white', borderRadius: 2 }} 
+            />
+          }
+        />
+      </Box>
+      
+    </Box>
               <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <TextField fullWidth type="number" label="ระยะเวลาเช่า (เดือน)" value={formData.contractTerm || ''} 
                   onChange={(e) => setFormData({...formData, contractTerm: e.target.value === '' ? null : Number(e.target.value)})} 
