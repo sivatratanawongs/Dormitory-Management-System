@@ -201,14 +201,12 @@ const BillingPage = () => {
             <DatePicker 
               label="วันที่จดหน่วย" 
               value={recordDate} 
-              onChange={(newValue) => setRecordDate(newValue)} 
+              onChange={(newValue) => setRecordDate(newValue)}
+              format="dd/MM/yyyy" 
               slotProps={{
-                field: { readOnly: true },
                 textField: {
                   size: 'small',
-                  inputProps: {
-                    value: formatThaiDate(recordDate),
-                  },
+                  value: formatThaiDate(recordDate),
                   onClick: (e) => {
                     const button = e.currentTarget.querySelector('button');
                     if (button) button.click();
@@ -217,24 +215,29 @@ const BillingPage = () => {
                     width: 300, 
                     cursor: 'pointer',
                     '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
-                  }
+                  },
+                  readOnly: true, 
                 }
               }}
             />
-          <DatePicker 
-            label="รอบบิลประจำเดือน" 
-            views={['year', 'month']} 
-            value={billingMonth} 
-            onChange={(newValue) => setBillingMonth(newValue)}
-            slotProps={{
-              textField: {
-                size: 'small',
-                sx: { width: 300 },
-                value: formatThaiDate(billingMonth, true),
-                readOnly: true,
-              }
-            }}
-          />
+            <DatePicker 
+              label="รอบบิลประจำเดือน" 
+              views={['year', 'month']} 
+              value={billingMonth} 
+              onChange={(newValue) => setBillingMonth(newValue)}
+              slotProps={{
+                textField: {
+                  size: 'small',
+                  sx: { width: 300 },
+                  value: formatThaiDate(billingMonth, true),
+                  readOnly: true,
+                  onClick: (e) => {
+                    const button = e.currentTarget.querySelector('button');
+                    if (button) button.click();
+                  },
+                }
+              }}
+            />
           </Box>
         </LocalizationProvider>
       </Box>
