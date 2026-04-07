@@ -389,38 +389,32 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const parseDate = (val: string | number | Date | null | undefined): Date | null => {
-  if (!val || val === "-" || val === "") return null;
-  try {
-    // ถ้าเป็นตัวเลข (Timestamp) ให้ส่งเข้า new Date() ได้เลย
-    if (typeof val === 'number') return new Date(val);
-    
-    const dateStr = typeof val === 'string' ? val.replace(' ', 'T') : val;
-    const d = new Date(dateStr);
-    return Number.isNaN(d.getTime()) ? null : d;
-  } catch {
-    return null;
-  }
-};
+    if (!val || val === "-" || val === "") return null;
+    try {
+      if (typeof val === 'number') return new Date(val);
+      const standardized = typeof val === 'string' ? val.replace(' ', 'T') : val;
+      const d = new Date(standardized);
+      return Number.isNaN(d.getTime()) ? null : d;
+    } catch {
+      return null;
+    }
+  };
 
   const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
-  const date = parseDate(val);
-  if (!date) return "-";
-  
-  const yearBE = date.getFullYear() + 543;
-  return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
+    const date = parseDate(val);
+    if (!date) return "-";
+    const yearBE = date.getFullYear() + 543;
+    return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
   const renderValue = (): string => {
-    if (!value || value === "-" || value === "") {
-      return "-";
-    }
+    if (!value || value === "-" || value === "") return "-";
+
     switch (type) {
       case 'date':
         return getThaiDateDisplay(value);
-      
       case 'number':
-        return Number(value || 0).toLocaleString();
-      
+        return Number(value).toLocaleString();
       default:
         return String(value);
     }
