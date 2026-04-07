@@ -126,9 +126,20 @@ const BillingPage = () => {
             globalThis.location.reload();
           }
       } catch (error) {
-          console.error("Save Error:", error);
+          console.error(error);
       }
     })());
+  };
+
+  const formatThaiDate = (date: Date | null, isMonthOnly = false) => {
+    if (!date) return "";
+    const yearBE = date.getFullYear() + 543;
+    
+    if (isMonthOnly) {
+      return `${format(date, 'MMMM', { locale: th })} ${yearBE}`;
+    }
+    
+    return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
   useEffect(() => {
@@ -189,11 +200,16 @@ const BillingPage = () => {
         </Box>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' ,width: { xs: "100%", md: "auto" }}}>
-            <DatePicker label="วันที่จดหน่วย" value={recordDate} onChange={(newValue) => setRecordDate(newValue)} format="dd/MM/yyyy" onOpen={() => {}} 
+            <DatePicker 
+              label="วันที่จดหน่วย" 
+              value={recordDate} 
+              onChange={(newValue) => setRecordDate(newValue)} 
+              format="dd/MM/yyyy" 
               slotProps={{
                 field: { readOnly: true },
                 textField: {
                   size: 'small',
+                  value: formatThaiDate(recordDate), 
                   onClick: (e) => {
                     const button = e.currentTarget.querySelector('button');
                     if (button) button.click();
@@ -207,11 +223,17 @@ const BillingPage = () => {
                 }
               }}
             />
-          <DatePicker label="รอบบิลประจำเดือน" views={['year', 'month']} value={billingMonth} onChange={(newValue) => setBillingMonth(newValue)} format="MM/yyyy"
+          <DatePicker 
+            label="รอบบิลประจำเดือน" 
+            views={['year', 'month']} 
+            value={billingMonth} 
+            onChange={(newValue) => setBillingMonth(newValue)} 
+            format="MM/yyyy"
             slotProps={{
               field: { readOnly: true },
               textField: {
                 size: 'small',
+                value: formatThaiDate(billingMonth, true),
                 onClick: (e) => {
                   const button = e.currentTarget.querySelector('button');
                   if (button) button.click();
