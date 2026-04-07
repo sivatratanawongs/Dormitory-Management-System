@@ -70,14 +70,8 @@ const BillingPage = () => {
               if (billRefs.current[room.id]) {
                   const element = billRefs.current[room.id];
                   if (element) {
-                      const canvas = await html2canvas(element, {
-                          scale: 2,
-                          useCORS: true,
-                          allowTaint: false,
-                          backgroundColor: "#ffffff",
-                          logging: false,
-                      });
-                      base64Image = canvas.toDataURL("image/jpeg", 0.8); 
+                    const canvas = await html2canvas(element, { scale: 2 });
+                    base64Image = canvas.toDataURL("image/png");
                   }
               }
 
