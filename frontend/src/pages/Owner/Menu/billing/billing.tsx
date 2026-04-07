@@ -149,17 +149,13 @@ const handleConfirmAndSave = async () => {
     if (allBillings.length === 0) return;
 
     await withLoading((async () => {
-      try {
-        await BillingFrontendService.createBulk(allBillings);
-        setOpenDialog(false);
-        globalThis.location.reload();
-      } catch (error: unknown) {
-        // แก้ไข error: any เป็น unknown ตาม ESLint
-        const message = error instanceof Error ? error.message : "Unknown error";
-        console.error("Save Error:", message);
-        alert("บันทึกไม่สำเร็จ: " + message);
-      }
-    })());
+    try {
+      await BillingFrontendService.createBulk(allBillings); 
+      setOpenDialog(false);
+      globalThis.location.reload();
+    } catch (error: unknown) {
+      console.error("Save Billing Error:", error);}
+  })());
   } catch (error: unknown) {
     console.error("Process Error:", error);
   }
