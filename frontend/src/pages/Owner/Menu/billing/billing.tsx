@@ -100,12 +100,13 @@ const handleConfirmAndSave = async () => {
         if (billRefs.current[room.id]) {
           const element = billRefs.current[room.id];
           if (element) {
-            const canvas = await html2canvas(element, {
-              scale: 0.8,
-              useCORS: true,
-              backgroundColor: "#ffffff",
-            });
-            base64Image = canvas.toDataURL("image/png", 0.7);
+          const canvas = await html2canvas(element, {
+            scale: 1, 
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false,
+          });
+          base64Image = canvas.toDataURL("image/png");
           }
         }
 
