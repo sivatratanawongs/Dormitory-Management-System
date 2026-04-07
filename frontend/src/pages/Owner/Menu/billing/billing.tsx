@@ -161,10 +161,12 @@ const BillingPage = () => {
 
   const getImageUrl = (path: string | null | undefined) => {
     if (!path) return "";
+    if (path.startsWith("http")) return path; 
     if (path.startsWith("data:")) return path; 
+    
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
     return `${baseUrl}${path}`;
-};
+  };
 
   return (
     <Box>
