@@ -66,7 +66,7 @@ const UtilityTab = () => {
         waterMinUnit: Number(tempData.minWaterUnit),
       };
       setIsEditing(false);
-      await withLoading(SettingService.updateSettings(dataToSave));
+      await SettingService.updateSettings(dataToSave);
       
       const newLogs: RateHistory[] = [];
       if (newLogs.length > 0) {

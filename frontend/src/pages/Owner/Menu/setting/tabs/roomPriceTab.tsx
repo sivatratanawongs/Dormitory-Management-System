@@ -175,7 +175,7 @@ const RoomPriceTab = () => {
         description: r.description
       }));
 
-      await withLoading(SettingService.updateBulkRooms(updatedRooms));
+      await SettingService.updateBulkRooms(updatedRooms);
       setRoomData([...tempData]);
       setIsEditing(false);
     } catch (error) {
@@ -186,7 +186,7 @@ const RoomPriceTab = () => {
   const handleAddNewRoom = async () => {
     try {
       setOpenAddDialog(false);
-      await withLoading(SettingService.addRoom(newRoom));
+      await SettingService.addRoom(newRoom);
       await loadInitialData();
       
       setNewRoom({ roomNumber: '', floor: 1, roomTypeId: roomTypes[0]?.id || '', basePrice: 0, description: '' });

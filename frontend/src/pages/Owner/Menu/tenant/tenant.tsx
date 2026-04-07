@@ -16,7 +16,7 @@ import type { IRoom } from '../../../../type/room'
 import type { ITenant } from '../../../../type/tenant';
 
 const TenantsPage = () => {
-  const { showLoading, hideLoading } = useLoading();
+  const { withLoading } = useLoading();
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<IRoom | null>(null);
@@ -25,12 +25,11 @@ const TenantsPage = () => {
 
   const loadAllData = async () => {
     try {
-      showLoading();
       setError(null);
-      const [roomsData, tenantsResponse] = await Promise.all([
+      const [roomsData, tenantsResponse] = await withLoading(Promise.all([
         SettingService.getRooms(),
         TenantFrontendService.getAllActiveTenants()
-      ]);
+      ]));
       
       const activeTenants = tenantsResponse.success ? tenantsResponse.data : [];
       const tenantMap = new Map((activeTenants || []).map(t => [t.roomId, t]));
@@ -50,15 +49,12 @@ const TenantsPage = () => {
     } catch (err) {
       setError("ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
       console.error(err);
-    } finally {
-      hideLoading();
     }
   };
 
   const handleMoveOutConfirm = async () => {
     if (!selectedRoom?.tenants?.length) return;
     try {
-      showLoading();
       const tenantId = selectedRoom.tenants[0].id;
       
       await TenantFrontendService.moveOut(tenantId, { 
@@ -69,7 +65,6 @@ const TenantsPage = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      hideLoading();
       setIsMoveOutOpen(false);
     }
   };

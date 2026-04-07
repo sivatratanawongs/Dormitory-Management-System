@@ -18,7 +18,7 @@ import { useLoading } from '../../../../components/LoadingContext';
 
 const BillingPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
-  const { showLoading, hideLoading } = useLoading();
+  const { withLoading } = useLoading();
   const [rooms, setRooms] = useState<BillingRoomState[]>([]);
   const [recordDate, setRecordDate] = useState<Date | null>(new Date()); 
   const billRefs = useRef<{ [key: string]: HTMLElement | null }>({});
@@ -59,11 +59,9 @@ const BillingPage = () => {
   const handleConfirmAndSave = async () => {
       if (!systemSetting) return;
       setOpenDialog(false); 
-      showLoading();
-      
-      try {
-          await new Promise(resolve => setTimeout(resolve, 300));
 
+      await withLoading((async () => {
+      try {
           const activeRooms = rooms.filter(room => room.tenantId !== null);
           const emptyRooms = rooms.filter(room => room.tenantId === null);
 
@@ -123,29 +121,25 @@ const BillingPage = () => {
 
           const allBillings = [...activeBillings, ...emptyBillings];
 
-          if (allBillings.length === 0) {
-            hideLoading();
-            return;
+          if (allBillings.length > 0) {
+            await BillingFrontendService.createBulk(allBillings);
+            globalThis.location.reload();
           }
-          
-          await BillingFrontendService.createBulk(allBillings);
-          globalThis.location.reload();
-
       } catch (error) {
           console.error("Save Error:", error);
-          hideLoading();
       }
+    })());
   };
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [meterData, sysSetting, paySetting] = await Promise.all([
+        const [meterData, sysSetting, paySetting] = await withLoading(Promise.all([
           BillingFrontendService.getLastReadings(),
           SettingService.getSettings(),
           SettingService.getPaymentSettings(),
           TenantFrontendService.getAllActiveTenants()
-        ]);
+        ]));
         setSystemSetting(sysSetting);
         setPaymentSetting(paySetting);
 
@@ -167,7 +161,7 @@ const BillingPage = () => {
       }
     };
     loadInitialData();
-  }, []);
+  }, [withLoading]);
 
   const getImageUrl = (path: string | null | undefined) => {
     if (!path) return "";

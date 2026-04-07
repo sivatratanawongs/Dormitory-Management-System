@@ -55,9 +55,8 @@ const PaymentAccountTab = () => {
       if (selectedFile) {
         formData.append("qrImage", selectedFile);
       }
-
-      const updated = await withLoading(SettingService.updatePaymentSettings(formData));
-
+      const updated = await SettingService.updatePaymentSettings(formData);
+      
       setAccountInfo(updated);
       setIsEditing(false);
       setSelectedFile(null);
