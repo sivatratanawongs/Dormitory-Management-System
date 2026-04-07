@@ -132,7 +132,7 @@ const BillingPage = () => {
   };
 
   const formatThaiDate = (date: Date | null, isMonthOnly = false) => {
-    if (!date) return "";
+    if (!date || Number.isNaN(date.getTime())) return ""; 
     const yearBE = date.getFullYear() + 543;
     if (isMonthOnly) {
       return `${format(date, 'MMMM', { locale: th })} ${yearBE}`;
@@ -198,12 +198,16 @@ const BillingPage = () => {
         </Box>
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' ,width: { xs: "100%", md: "auto" }}}>
-            <DatePicker 
-              label="วันที่จดหน่วย" 
-              value={recordDate} 
-              onChange={(newValue) => setRecordDate(newValue)}
-              format="dd/MM/yyyy" 
+            <DatePicker
+              label="วันที่จดหน่วย"
+              value={recordDate}
+              key={recordDate ? recordDate.toString() : 'empty'}
+              onChange={(newValue) => {
+                setRecordDate(newValue);
+              }}
+              format="dd/MM/yyyy"
               slotProps={{
+                field: { readOnly: true },
                 textField: {
                   size: 'small',
                   value: formatThaiDate(recordDate),
@@ -215,26 +219,29 @@ const BillingPage = () => {
                     width: 300, 
                     cursor: 'pointer',
                     '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
-                  },
-                  readOnly: true, 
+                  }
                 }
               }}
             />
-            <DatePicker 
-              label="รอบบิลประจำเดือน" 
-              views={['year', 'month']} 
-              value={billingMonth} 
-              onChange={(newValue) => setBillingMonth(newValue)}
+
+            <DatePicker
+              label="รอบบิลประจำเดือน"
+              views={['year', 'month']}
+              value={billingMonth}
+              key={billingMonth ? billingMonth.toString() : 'empty'}
+              onChange={(newValue) => {
+                setBillingMonth(newValue);
+              }}
               slotProps={{
+                field: { readOnly: true },
                 textField: {
                   size: 'small',
-                  sx: { width: 300 },
                   value: formatThaiDate(billingMonth, true),
-                  readOnly: true,
                   onClick: (e) => {
                     const button = e.currentTarget.querySelector('button');
                     if (button) button.click();
                   },
+                  sx: { width: 300, cursor: 'pointer' }
                 }
               }}
             />
