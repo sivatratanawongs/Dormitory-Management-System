@@ -388,17 +388,15 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
-    if (!val || val === "-") return "-";
-    
-    const date = new Date(val as string);
+    if (!val || val === "-" || val === "") return "-";
+    const date = val instanceof Date ? val : new Date(val);
     if (Number.isNaN(date.getTime())) return "-";
-    
     const yearBE = date.getFullYear() + 543;
     return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
   const renderValue = (): string => {
-    if (!value || value === "-") return "-";
+    if (!value || value === "-" || value === "") return "-";
     if (type === 'date') {
       return getThaiDateDisplay(value);
     }
