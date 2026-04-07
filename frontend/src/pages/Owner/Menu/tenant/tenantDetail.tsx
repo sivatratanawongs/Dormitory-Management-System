@@ -71,15 +71,6 @@ const TenantDetail = () => {
   if (loading) return <LoadingSkeleton />;
   if (error || !tenant) return <ErrorState message={error} onBack={() => navigate(-1)} />;
 
-  const formatThaiDate = (dateString: string | Date | undefined | null) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return '-';
-    
-    const yearBE = date.getFullYear() + 543; 
-    return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
-  };
-
   const openDeleteConfirm = (fileType: 'idCard' | 'contract') => {
     setFileToDelete(fileType);
     setDeleteDialogOpen(true);
