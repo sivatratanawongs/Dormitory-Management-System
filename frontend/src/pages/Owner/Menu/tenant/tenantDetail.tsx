@@ -472,13 +472,13 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'row', 
-      alignItems: (isEditing && label.includes("ที่อยู่")) ? 'flex-start' : 'center', 
+      alignItems: label.includes("ที่อยู่") ? 'flex-start' : 'center', 
       minHeight: 48, 
       gap: 2,
       py: 0.5 
     }}>
       <Box sx={{ minWidth: 140, flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ color: '#64748b' }}>
+        <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748b' }}>
           {label}
         </Typography>
       </Box>
@@ -486,14 +486,41 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
       {isEditing ? (
         renderEditInput()
       ) : (
-        <Typography variant="body2" sx={{ 
-          flex: 1, 
-          fontWeight: 600, 
-          color: '#1e293b',
-          whiteSpace: label.includes("ที่อยู่") ? 'pre-wrap' : 'normal' 
-        }}>
-          {renderValue()}
-        </Typography>
+        <TextField
+          size="small"
+          fullWidth
+          multiline={label.includes("ที่อยู่")}
+          rows={label.includes("ที่อยู่") ? 3 : 1}
+          value={renderValue()}
+          slotProps={{
+            input: {
+              readOnly: true,
+            },
+          }}
+          sx={{
+            flex: 1,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '8px',
+              bgcolor: '#f8fafc',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#1e293b',
+              '& fieldset': { 
+                borderColor: '#e2e8f0',
+                borderStyle: 'solid' 
+              },
+              '&:hover fieldset': {
+                borderColor: '#e2e8f0',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#e2e8f0', 
+              },
+              '& .MuiInputBase-input.Mui-readOnly': {
+                WebkitTextFillColor: '#1e293b', 
+              }
+            }
+          }}
+        />
       )}
     </Box>
   );
