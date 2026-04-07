@@ -40,16 +40,22 @@ const PaymentAccountTab = () => {
   });
 
   const [tempInfo, setTempInfo] = useState<IPaymentSetting>({ ...accountInfo });
+
   useEffect(() => {
     const loadData = async () => {
       try {
         showLoading();
-        const data = await SettingService.getPaymentSettings();
+        const timer = new Promise((resolve) => setTimeout(resolve, 3000));
+        const [data] = await Promise.all([
+          SettingService.getPaymentSettings(),
+          timer
+        ]);
+
         setAccountInfo(data);
         setTempInfo(data);
-      } catch (error) {
-        console.error("Failed to load payment settings:", error);
-      } finally {
+      }catch (error) {
+        console.error(error);
+      }finally {
         hideLoading();
       }
     };
@@ -77,6 +83,8 @@ const PaymentAccountTab = () => {
   const handleSave = async () => {
     try {
       showLoading();
+      const timer = new Promise((resolve) => setTimeout(resolve, 3000));
+
       const formData = new FormData();
       formData.append("accountName", tempInfo.accountName || "");
       formData.append("bankName", tempInfo.bankName || "");
@@ -86,23 +94,27 @@ const PaymentAccountTab = () => {
         formData.append("qrImage", selectedFile);
       }
 
-      const updated = await SettingService.updatePaymentSettings(formData);
+      const [updated] = await Promise.all([
+        SettingService.updatePaymentSettings(formData),
+        timer
+      ]);
       setAccountInfo(updated);
       setIsEditing(false);
       setSelectedFile(null);
-    } catch (error) {
+    }catch (error) {
       console.error(error);
     }finally {
       hideLoading();
     }
   };
+  
   const getImageUrl = (path: string | null) => {
-  if (!path) return null;
-  if (path.startsWith("data:")) return path;
-  if (path.startsWith("http")) return path; 
-  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
-  return `${baseUrl}${path}`;
-};
+    if (!path) return null;
+    if (path.startsWith("data:")) return path;
+    if (path.startsWith("http")) return path; 
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
+    return `${baseUrl}${path}`;
+  };
   
   const textFieldStyle = {
     "& .MuiInputBase-root.Mui-disabled": {
@@ -117,6 +129,11 @@ const PaymentAccountTab = () => {
       borderRadius: 2,
     },
   };
+
+  const currentQrCode = isEditing ? tempInfo.qrCodeUrl : accountInfo.qrCodeUrl;
+  const overlayBgColor = currentQrCode ? "rgba(0,0,0,0.4)" : "transparent";
+  const displayQrCode = isEditing ? tempInfo.qrCodeUrl : accountInfo.qrCodeUrl;
+  const qrImageUrl = getImageUrl(displayQrCode);
 
   return (
     <Box>
@@ -208,22 +225,24 @@ const PaymentAccountTab = () => {
               setTempInfo({ ...tempInfo, bankName: e.target.value })
             }
             sx={textFieldStyle}
-            SelectProps={{
-              renderValue: (selected) => {
-                const bank = BANKS.find((b) => b.name === selected);
-                return (
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    {bank && (
-                      <img
-                        src={bank.logo}
-                        alt=""
-                        style={{ width: 24, height: 24, objectFit: "contain" }}
-                      />
-                    )}
-                    {selected as string}
-                  </Box>
-                );
-              },
+            slotProps={{
+              select: {
+                renderValue: (selected) => {
+                  const bank = BANKS.find((b) => b.name === selected);
+                  return (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      {bank && (
+                        <img
+                          src={bank.logo}
+                          alt=""
+                          style={{ width: 24, height: 24, objectFit: "contain" }}
+                        />
+                      )}
+                      {selected as string}
+                    </Box>
+                  );
+                },
+              }
             }}
           >
             {BANKS.map((bank) => (
@@ -278,15 +297,11 @@ const PaymentAccountTab = () => {
                 isEditing && !tempInfo.qrCodeUrl ? "dashed" : "solid",
             }}
           >
-            {(isEditing ? tempInfo.qrCodeUrl : accountInfo.qrCodeUrl) ? (
+            {displayQrCode ? (
               <CardMedia
                 component="img"
                 height="250"
-                image={
-                  getImageUrl(
-                    isEditing ? tempInfo.qrCodeUrl : accountInfo.qrCodeUrl,
-                  ) || ""
-                }
+                image={qrImageUrl || ""}
                 alt="QR Code"
                 sx={{ objectFit: "contain", p: 2 }}
               />
@@ -307,11 +322,7 @@ const PaymentAccountTab = () => {
                   left: 0,
                   width: "100%",
                   height: "100%",
-                  bgcolor: (
-                    isEditing ? tempInfo.qrCodeUrl : accountInfo.qrCodeUrl
-                  )
-                    ? "rgba(0,0,0,0.4)"
-                    : "transparent",
+                  bgcolor: overlayBgColor,
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
