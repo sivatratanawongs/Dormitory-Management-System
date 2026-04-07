@@ -387,12 +387,27 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
   const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
     if (!val || val === "-" || val === "") return "-";
-    const date = val instanceof Date ? val : new Date(val);
-    if (Number.isNaN(date.getTime())) return "-";
-    const yearBE = date.getFullYear() + 543;
-    return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
+
+    try {
+      let date: Date;
+      
+      if (typeof val === 'string') {
+        const standardizedDate = val.replace(' ', 'T');
+        date = new Date(standardizedDate);
+      } else {
+        date = new Date(val);
+      }
+
+      if (Number.isNaN(date.getTime())) return "-";
+      const yearBE = date.getFullYear() + 543;
+      return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
+    } catch (e) {
+      console.error(e);
+      return "-";
+    }
   };
 
   const renderValue = (): string => {
