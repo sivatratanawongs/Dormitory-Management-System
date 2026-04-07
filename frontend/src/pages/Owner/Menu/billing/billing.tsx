@@ -101,17 +101,17 @@ const handleConfirmAndSave = async () => {
           const element = billRefs.current[room.id];
           if (element) {
             const canvas = await html2canvas(element, {
-              scale: 0.8, // ลดขนาดเพื่อเลี่ยง RAM Server เต็ม
+              scale: 0.8,
               useCORS: true,
               backgroundColor: "#ffffff",
             });
-            base64Image = canvas.toDataURL("image/jpeg", 0.7);
+            base64Image = canvas.toDataURL("image/png", 0.7);
           }
         }
 
         return {
           roomId: room.id,
-          roomNumber: room.roomNumber, // ✨ ส่งไปเพื่อให้ Backend ตั้งชื่อไฟล์ได้
+          roomNumber: room.roomNumber,
           tenantId: room.tenantId,
           month: format(billingMonth || new Date(), "yyyy-MM"),
           elecUnitPrev: room.prevElec,
@@ -130,7 +130,7 @@ const handleConfirmAndSave = async () => {
 
     const emptyBillings: ICreateBilling[] = emptyRooms.map((room) => ({
       roomId: room.id,
-      roomNumber: room.roomNumber, // ✨ ห้องว่างก็ต้องส่ง roomNumber ไปด้วย
+      roomNumber: room.roomNumber,
       tenantId: null, 
       month: format(billingMonth || new Date(), "yyyy-MM"),
       elecUnitPrev: room.prevElec,
