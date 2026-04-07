@@ -419,25 +419,24 @@ const BillingPage = () => {
                     )}
                   </Box>
                   {paymentSetting?.qrCodeUrl && (
-                  <Box sx={{ textAlign: "center", ml: 2 }}>
-                    <img 
-                      src={getImageUrl(paymentSetting?.qrCodeUrl)} 
-                      alt="QR Code"
-                      crossOrigin="anonymous"
-                      style={{ 
-                        width: '100px',
-                        height: '100px',
-                        objectFit: 'contain',
-                        display: 'block',
-                        margin: '0 auto' 
-                      }}
-                      onLoad={() => console.log("QR Image Loaded")}
-                    />
-                    <Typography sx={{ fontSize: "0.5rem", color: "#64748b", mt: 0.5 }}>
-                      Scan เพื่อชำระ
-                    </Typography>
-                  </Box>
-                )}
+                    <Box sx={{ textAlign: "center", ml: 2 }}>
+                      <img 
+                        src={getImageUrl(paymentSetting?.qrCodeUrl)} 
+                        alt="QR Code"
+                        crossOrigin="anonymous" 
+                        style={{ 
+                          width: '100px',
+                          height: '100px',
+                          objectFit: 'contain',
+                          display: 'block',
+                          margin: '0 auto' 
+                        }}
+                      />
+                      <Typography sx={{ fontSize: "0.5rem", color: "#64748b", mt: 0.5 }}>
+                        Scan เพื่อชำระ
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </Paper>
               </Box>
