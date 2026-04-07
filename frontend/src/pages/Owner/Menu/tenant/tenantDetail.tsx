@@ -75,11 +75,9 @@ const TenantDetail = () => {
     if (!dateString) return '-';
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    
+    const yearBE = date.getFullYear() + 543; 
+    return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
   const openDeleteConfirm = (fileType: 'idCard' | 'contract') => {
@@ -389,92 +387,125 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  let inputElement = null;
-  const renderValue = (): string => {
-    if (typeof value === 'string' && value.includes(' ')) return value; 
-    if (type === 'number') return Number(value || 0).toLocaleString();
-    if (value instanceof Date) return value.toLocaleDateString('th-TH');
-    return String(value ?? '-');
+
+  const getDisplayValue = (val: string | number | Date | null | undefined): string => {
+    if (!val) return "";
+    const date = new Date(val as string);
+    if (Number.isNaN(date.getTime())) return "";
+    const yearBE = date.getFullYear() + 543;
+    return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
-  if (isEditing) {
+  const renderValue = (): string => {
+    if (!value) return "-";
+    
     if (type === 'date') {
-      inputElement = (
+      const date = new Date(value as string);
+      if (Number.isNaN(date.getTime())) return "-";
+      return `${format(date, 'd MMMM', { locale: th })} ${date.getFullYear() + 543}`;
+    }
+    
+    if (type === 'number') {
+      return Number(value || 0).toLocaleString();
+    }
+    
+    return String(value);
+  };
+
+  const renderEditInput = () => {
+    if (type === 'date') {
+      return (
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-          <DatePicker 
-            open={isDatePickerOpen}
-            onOpen={() => setIsDatePickerOpen(true)}
-            onClose={() => setIsDatePickerOpen(false)}
-            value={value ? new Date(value as string) : null}
-            onChange={(newValue: Date | null) => {
-              if (newValue && !Number.isNaN(newValue.getTime())) {
-                const formattedDate = format(newValue, 'yyyy-MM-dd');
-                onChange?.(formattedDate);
-                setIsDatePickerOpen(false);
-              }
-            }}
-            format="dd/MM/yyyy"
-            slotProps={{
-            textField: {
-              size: 'small', 
-              fullWidth: true,
-              inputProps: { readOnly: true },
-              onClick: () => setIsDatePickerOpen(true),
-              sx: {
-                flex: 1,
-                '& .MuiOutlinedInput-root': { 
-                  borderRadius: '8px', 
-                  cursor: 'pointer',
-                  bgcolor: '#fff',  
-                  fontSize: '16px', 
-                  '&:hover fieldset': { borderColor: '#3b82f6' },
-                  '& .MuiInputBase-input': {
-                    py: 1, 
-                    cursor: 'pointer',
-                    fontWeight: 700,
+          <Box sx={{ flex: 1, '& .react-datepicker-wrapper': { width: '100%' } }}>
+            <DatePicker
+                open={isDatePickerOpen}
+                onOpen={() => setIsDatePickerOpen(true)}
+                onClose={() => setIsDatePickerOpen(false)}
+                value={value ? new Date(value as string) : null}
+                onChange={(newValue: Date | null) => {
+                  if (newValue) {
+                    const formattedDate = format(newValue, 'yyyy-MM-dd');
+                    onChange?.(formattedDate);
                   }
-                },
-              }
-            }
-          }}
-        />
+                }}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    fullWidth: true,
+                    value: getDisplayValue(value), 
+                    inputProps: { readOnly: true },
+                    onClick: () => setIsDatePickerOpen(true),
+                    sx: {
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        bgcolor: '#fff',
+                        '& input': { cursor: 'pointer', fontWeight: 600 }
+                      }
+                    }
+                  }
+                }}
+              />
+          </Box>
         </LocalizationProvider>
       );
-    }else {
-      inputElement = (
-        <TextField size="small" type={type} value={value || ''} onChange={(e) => onChange?.(e.target.value)} multiline={label.includes("ที่อยู่")} rows={label.includes("ที่อยู่") ? 3 : 1}
-          sx={{ 
-            flex: 1,
-            borderColor: '1px #e2e8f0',
-            '& .MuiOutlinedInput-root': { borderRadius: '4px', bgcolor: '#fff', fontSize: '16px',
-              '& fieldset': { borderColor: '#c2c2c2ff', borderWidth: '1px',},
-              '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
-              '& input[type=number]': { MozAppearance: 'textfield' },
-            },
-            '& .MuiInputBase-input': { textAlign: 'left', py: 1 }
-          }}
-        />
-      );
     }
-  }
-  else {
-    inputElement = (
-      <Typography variant="body2" sx={{ flex: 1 }}>
-        {renderValue()}
-      </Typography>
+
+    return (
+      <TextField
+        size="small"
+        type={type}
+        fullWidth
+        value={value || ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        multiline={label.includes("ที่อยู่")}
+        rows={label.includes("ที่อยู่") ? 3 : 1}
+        sx={{
+          flex: 1,
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+            bgcolor: '#fff',
+            fontSize: '0.875rem',
+            '& fieldset': { borderColor: '#e2e8f0' },
+            '&:hover fieldset': { borderColor: '#3b82f6' }
+          },
+          '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+          '& input[type=number]': { MozAppearance: 'textfield' },
+        }}
+      />
     );
-  }
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: (isEditing && label === "ที่อยู่ :") ? 'flex-start' : 'center', minHeight: 48, gap: 2}}>
-      <Box sx={{ minWidth: 130, flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'row', 
+      alignItems: (isEditing && label.includes("ที่อยู่")) ? 'flex-start' : 'center', 
+      minHeight: 48, 
+      gap: 2,
+      py: 0.5 
+    }}>
+      <Box sx={{ minWidth: 140, flexShrink: 0 }}>
+        <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748b' }}>
           {label}
         </Typography>
       </Box>
-      {inputElement}
+
+      {isEditing ? (
+        renderEditInput()
+      ) : (
+        <Typography variant="body2" sx={{ 
+          flex: 1, 
+          fontWeight: 600, 
+          color: '#1e293b',
+          whiteSpace: label.includes("ที่อยู่") ? 'pre-wrap' : 'normal' 
+        }}>
+          {renderValue()}
+        </Typography>
+      )}
     </Box>
   );
 };
+
 
 const LoadingSkeleton = () => (
   <Box sx={{ p: 4, bgcolor: '#f8fafc', minHeight: '100vh' }}>
