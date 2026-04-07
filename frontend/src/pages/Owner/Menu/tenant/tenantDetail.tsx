@@ -276,9 +276,27 @@ return (
                 <DetailItem label="ที่อยู่ :" value={isEditing ? editForm?.address : tenant.address} isEditing={isEditing} onChange={(val) => handleInputChange('address', val)} />
               </DetailCard>
               <DetailCard title="ข้อมูลสัญญาเช่า" icon={FileText}>
-                <DetailItem label="วันที่ทำสัญญา :" value={isEditing ? editForm?.contractDate : formatThaiDate(tenant.contractDate)} isEditing={isEditing} type="date" onChange={(val) => handleInputChange('contractDate', val)} />
-                <DetailItem label="วันที่เริ่มเข้าพัก :" value={isEditing ? editForm?.moveInDate : formatThaiDate(tenant.moveInDate)} isEditing={isEditing} type="date" onChange={(val) => handleInputChange('moveInDate', val)} />
-                <DetailItem label="วันที่สิ้นสุดสัญญา :" value={isEditing ? editForm?.contractEndDate : formatThaiDate(tenant.contractEndDate)} isEditing={isEditing} type="date" onChange={(val) => handleInputChange('contractEndDate', val)} />
+                <DetailItem 
+                  label="วันที่ทำสัญญา :" 
+                  value={isEditing ? editForm?.contractDate : tenant.contractDate} // ส่งค่าตรงๆ ไม่ต้อง format
+                  isEditing={isEditing} 
+                  type="date" 
+                  onChange={(val) => handleInputChange('contractDate', val)} 
+                />
+                <DetailItem 
+                  label="วันที่เริ่มเข้าพัก :" 
+                  value={isEditing ? editForm?.moveInDate : tenant.moveInDate} // ส่งค่าตรงๆ
+                  isEditing={isEditing} 
+                  type="date" 
+                  onChange={(val) => handleInputChange('moveInDate', val)} 
+                />
+                <DetailItem 
+                  label="วันที่สิ้นสุดสัญญา :" 
+                  value={isEditing ? editForm?.contractEndDate : tenant.contractEndDate} // ส่งค่าตรงๆ
+                  isEditing={isEditing} 
+                  type="date" 
+                  onChange={(val) => handleInputChange('contractEndDate', val)} 
+                />
                 <DetailItem label="ระยะสัญญา (เดือน) :" value={isEditing ? editForm?.contractTerm : tenant.contractTerm} isEditing={isEditing} type="number" onChange={(val) => handleInputChange('contractTerm', Number(val))} />
                 <DetailItem label="เงินประกัน (฿) :" value={isEditing ? editForm?.deposit : tenant.deposit} isEditing={isEditing} type="number" highlight onChange={(val) => handleInputChange('deposit', Number(val))} />
                 <DetailItem label="Line ID :" value={isEditing ? editForm?.lineId : tenant.lineId} isEditing={isEditing} onChange={(val) => handleInputChange('lineId', val)} />
