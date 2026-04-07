@@ -190,21 +190,14 @@ const RoomPriceTab = () => {
 
   const handleViewHistory = async (roomId: string, roomNumber: string) => {
     try {
+      setPage(0);
       setSelectedRoomNumber(roomNumber);
-      setHistoryDialogOpen(true);
-      setHistoryLoading(true); 
+      const data = await withLoading(BillingFrontendService.getHistoryByRoom(roomId)); 
       
-      const timer = new Promise((resolve) => setTimeout(resolve, 2000));
-      const [data] = await Promise.all([
-        BillingFrontendService.getHistoryByRoom(roomId),
-        timer
-      ]);
-
       setRoomHistory(data);
+      setHistoryDialogOpen(true);
     } catch (error) {
       console.error(error);
-    } finally {
-      setHistoryLoading(false);
     }
   };
 
@@ -312,46 +305,47 @@ const RoomPriceTab = () => {
           <IconButton onClick={() => setHistoryDialogOpen(false)}><X size={20} /></IconButton>
         </DialogTitle>
 
-        <DialogContent dividers sx={{ flex: 1, overflowY: 'auto', px: 5}}> 
-          {historyLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>
-          ) : (
-            <TableContainer>
-              <Table size="small" stickyHeader> 
-                <TableHead sx={{ bgcolor: '#f8fafc' }}>
+        <DialogContent dividers sx={{ flex: 1, overflowY: 'auto', px: 5 }}> 
+          <TableContainer>
+            <Table size="small" stickyHeader> 
+              <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700 }}>รอบเดือน</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>น้ำ (หน่วย)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>ค่าน้ำ/หน่วย</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>ไฟ (หน่วย)</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>ค่าไฟ/หน่วย</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>ยอดรวม</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {roomHistory.length === 0 ? (
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 700 }}>รอบเดือน</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 700 }}>น้ำ (หน่วย)</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 700 }}>ค่าน้ำ/หน่วย</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 700 }}>ไฟ (หน่วย)</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 700 }}>ค่าไฟ/หน่วย</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>ยอดรวม</TableCell>
+                    <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                      ไม่พบประวัติการออกบิล
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {roomHistory.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>ไม่พบประวัติการออกบิล</TableCell></TableRow>
-                  ) : (
-                    roomHistory
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((row) => (
-                        <TableRow key={row.id}>
-                          <TableCell sx={{ fontWeight: 600 }}>
-                            {formatThaiMonth(row.month)} 
-                          </TableCell>
-                          
-                          <TableCell align="center">{Math.max(0, row.waterUnitCurr - row.waterUnitPrev)}</TableCell>
-                          <TableCell align="center">{row.waterRate}</TableCell>
-                          <TableCell align="center">{Math.max(0, row.elecUnitCurr - row.elecUnitPrev)}</TableCell>
-                          <TableCell align="center">{row.elecRate}</TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 700 }}>{row.totalAmount.toLocaleString()} ฿</TableCell>
-                        </TableRow>
-                      ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+                ) : (
+                  roomHistory
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell sx={{ fontWeight: 600 }}>
+                          {formatThaiMonth(row.month)} 
+                        </TableCell>
+                        <TableCell align="center">{Math.max(0, row.waterUnitCurr - row.waterUnitPrev)}</TableCell>
+                        <TableCell align="center">{row.waterRate}</TableCell>
+                        <TableCell align="center">{Math.max(0, row.elecUnitCurr - row.elecUnitPrev)}</TableCell>
+                        <TableCell align="center">{row.elecRate}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>
+                          {row.totalAmount.toLocaleString()} ฿
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </DialogContent>
 
         {!historyLoading && roomHistory.length > 0 && (
