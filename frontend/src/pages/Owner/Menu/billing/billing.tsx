@@ -196,52 +196,68 @@ const BillingPage = () => {
             บันทึกมิเตอร์หอพัก
           </Typography>
         </Box>
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: "100%", md: "auto" } }}>
-            <DatePicker
-              label="วันที่จดหน่วย"
-              value={recordDate}
-              onChange={(newValue) => setRecordDate(newValue)}
-              key={`rec-${recordDate?.getTime()}`} 
-              slotProps={{
-                textField: {
-                  size: 'small',
-                  value: formatThaiDate(recordDate), 
-                  inputProps: { readOnly: true },
-                  onClick: (e) => {
-                    const button = e.currentTarget.querySelector('button');
-                    if (button) button.click();
-                  },
-                  sx: { 
-                    width: 300, 
-                    cursor: 'pointer',
-                    '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
-                  }
-                }
-              }}
-            />
-            <DatePicker
-              label="รอบบิลประจำเดือน"
-              views={['year', 'month']}
-              value={billingMonth}
-              onChange={(newValue) => setBillingMonth(newValue)}
-              key={`bill-${billingMonth?.getTime()}`}
-              slotProps={{
-                textField: {
-                  size: 'small',
-                  value: formatThaiDate(billingMonth, true),
-                  inputProps: { readOnly: true },
-                  onClick: (e) => {
-                    const button = e.currentTarget.querySelector('button');
-                    if (button) button.click();
-                  },
-                  sx: { width: 300, cursor: 'pointer' }
-                }
-              }}
-            />
-            
-          </Box>
-        </LocalizationProvider>
+<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
+  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: "100%", md: "auto" } }}>
+    
+    {/* 1. วันที่จดหน่วย */}
+    <DatePicker
+      label="วันที่จดหน่วย"
+      value={recordDate}
+      onChange={(newValue) => setRecordDate(newValue)}
+      // ใช้ slots.textField แทน slotProps ในบางกรณีที่ MUI รั้น
+      slots={{
+        textField: (params) => (
+          <TextField
+            {...params}
+            size="small"
+            // หัวใจคือตรงนี้: เราคุม value เอง 100%
+            value={formatThaiDate(recordDate)} 
+            InputProps={{
+              ...params.InputProps,
+              readOnly: true,
+            }}
+            onClick={(e) => {
+              const button = e.currentTarget.querySelector('button');
+              if (button) button.click();
+            }}
+            sx={{ 
+              width: 300, 
+              cursor: 'pointer',
+              '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
+            }}
+          />
+        ),
+      }}
+    />
+
+    {/* 2. รอบบิลประจำเดือน */}
+    <DatePicker
+      label="รอบบิลประจำเดือน"
+      views={['year', 'month']}
+      value={billingMonth}
+      onChange={(newValue) => setBillingMonth(newValue)}
+      slots={{
+        textField: (params) => (
+          <TextField
+            {...params}
+            size="small"
+            value={formatThaiDate(billingMonth, true)}
+            InputProps={{
+              ...params.InputProps,
+              readOnly: true,
+            }}
+            onClick={(e) => {
+              const button = e.currentTarget.querySelector('button');
+              if (button) button.click();
+            }}
+            sx={{ width: 300, cursor: 'pointer' }}
+          />
+        ),
+      }}
+    />
+    
+  </Box>
+</LocalizationProvider>
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "1fr 1fr 1fr 1fr" }, gap: 2, mb: 4 }}>
