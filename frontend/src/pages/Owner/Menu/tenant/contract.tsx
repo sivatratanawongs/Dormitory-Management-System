@@ -404,7 +404,8 @@ const ContractPage = () => {
 
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
     
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }}}>
+    {/* ส่วนวันที่: ปรับปรุงให้เหมือน TextField ปกติ */}
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
                     <DatePicker
                       selected={new Date(formData.contractDate)}
                       onChange={(date: Date | null) => {
