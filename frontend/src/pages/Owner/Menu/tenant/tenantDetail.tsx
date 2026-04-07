@@ -387,32 +387,24 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
-  // 1. ปรับฟังก์ชันแสดงผลวันที่ให้ยืดหยุ่นขึ้น
   const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
-    // ถ้าไม่มีค่า หรือค่าเป็น "-" ให้แสดง "-"
     if (!val || val === "-") return "-";
     
     const date = new Date(val as string);
-    // ตรวจสอบว่าแปลงเป็นวันที่สำเร็จหรือไม่
     if (Number.isNaN(date.getTime())) return "-";
     
     const yearBE = date.getFullYear() + 543;
     return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
-  // 2. ปรับ renderValue เพื่อเรียกใช้ฟังก์ชันเดียวกัน
   const renderValue = (): string => {
     if (!value || value === "-") return "-";
-    
     if (type === 'date') {
       return getThaiDateDisplay(value);
     }
-    
     if (type === 'number') {
       return Number(value || 0).toLocaleString();
     }
-    
     return String(value);
   };
 
@@ -424,7 +416,6 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             open={isDatePickerOpen}
             onInputClick={() => setIsDatePickerOpen(true)}
             onClickOutside={() => setIsDatePickerOpen(false)}
-            // ตรวจสอบค่า value ก่อนส่งให้ DatePicker เพื่อไม่ให้ Invalid Date
             selected={value && value !== "-" ? new Date(value as string) : null}
             onChange={(date: Date | null) => {
               if (date) {
@@ -447,7 +438,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px',
                     bgcolor: '#fff',
-                    '& input': { cursor: 'pointer', fontWeight: 600 }
+                    '& input': { cursor: 'pointer' }
                   }
                 }}
               />
@@ -462,7 +453,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
         size="small"
         type={type}
         fullWidth
-        value={(value === "-" ? "" : value) || ''} // ถ้าเป็น "-" ให้ช่อง Input ว่างในโหมด Edit
+        value={(value === "-" ? "" : value) || ''} 
         onChange={(e) => onChange?.(e.target.value)}
         multiline={label.includes("ที่อยู่")}
         rows={label.includes("ที่อยู่") ? 3 : 1}
@@ -489,7 +480,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
       py: 0.5 
     }}>
       <Box sx={{ minWidth: 140, flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748b' }}>
+        <Typography variant="body2" sx={{ color: '#64748b' }}>
           {label}
         </Typography>
       </Box>
