@@ -388,18 +388,31 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  // 1. ปรับฟังก์ชันแสดงผลวันที่ให้ยืดหยุ่นขึ้น
   const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
-    if (!val) return "-";
+    // ถ้าไม่มีค่า หรือค่าเป็น "-" ให้แสดง "-"
+    if (!val || val === "-") return "-";
+    
     const date = new Date(val as string);
+    // ตรวจสอบว่าแปลงเป็นวันที่สำเร็จหรือไม่
     if (Number.isNaN(date.getTime())) return "-";
+    
     const yearBE = date.getFullYear() + 543;
     return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
-  const renderValue = () => {
-    if (!value) return "-";
-    if (type === 'date') return getThaiDateDisplay(value);
-    if (type === 'number') return Number(value || 0).toLocaleString();
+  // 2. ปรับ renderValue เพื่อเรียกใช้ฟังก์ชันเดียวกัน
+  const renderValue = (): string => {
+    if (!value || value === "-") return "-";
+    
+    if (type === 'date') {
+      return getThaiDateDisplay(value);
+    }
+    
+    if (type === 'number') {
+      return Number(value || 0).toLocaleString();
+    }
+    
     return String(value);
   };
 
@@ -411,7 +424,8 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             open={isDatePickerOpen}
             onInputClick={() => setIsDatePickerOpen(true)}
             onClickOutside={() => setIsDatePickerOpen(false)}
-            selected={value ? new Date(value as string) : null}
+            // ตรวจสอบค่า value ก่อนส่งให้ DatePicker เพื่อไม่ให้ Invalid Date
+            selected={value && value !== "-" ? new Date(value as string) : null}
             onChange={(date: Date | null) => {
               if (date) {
                 const formattedDate = format(date, 'yyyy-MM-dd');
@@ -448,7 +462,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
         size="small"
         type={type}
         fullWidth
-        value={value || ''}
+        value={(value === "-" ? "" : value) || ''} // ถ้าเป็น "-" ให้ช่อง Input ว่างในโหมด Edit
         onChange={(e) => onChange?.(e.target.value)}
         multiline={label.includes("ที่อยู่")}
         rows={label.includes("ที่อยู่") ? 3 : 1}
@@ -458,12 +472,8 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             borderRadius: '8px',
             bgcolor: '#fff',
             fontSize: '0.875rem',
-            '& fieldset': { borderColor: '#e2e8f0' },
-            '&:hover fieldset': { borderColor: '#3b82f6' }
-          },
-          // ซ่อนลูกศรในช่องตัวเลข
-          '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
-          '& input[type=number]': { MozAppearance: 'textfield' },
+            '& fieldset': { borderColor: '#e2e8f0' }
+          }
         }}
       />
     );
