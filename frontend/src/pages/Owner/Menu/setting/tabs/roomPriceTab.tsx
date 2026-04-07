@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Box, Typography, TextField, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions,CircularProgress, IconButton, TablePagination } from '@mui/material';
+import { useState, useEffect, useCallback } from 'react';
+import { Box, Typography, TextField, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TablePagination } from '@mui/material';
 import { Edit3, X, Check, Plus, History } from 'lucide-react';
 
 // Local Imports
@@ -117,7 +117,6 @@ const RoomPriceTab = () => {
   const [tempData, setTempData] = useState<IRoom[]>([]);
   const [roomTypes, setRoomTypes] = useState<IRoomType[]>([]);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedRoomNumber, setSelectedRoomNumber] = useState('');
   const [page, setPage] = useState(0);
   const rowsPerPage = 12; 
@@ -131,25 +130,33 @@ const RoomPriceTab = () => {
     floor: 1,
   });
 
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       const [rooms, types] = await withLoading(Promise.all([
         SettingService.getRooms(),
         SettingService.getRoomTypes()
       ]));
-      const sortedRooms = [...rooms].sort((a, b) => {
-        return a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true, sensitivity: 'base' });
-      });
+      
+      const sortedRooms = [...rooms].sort((a, b) => 
+        a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true, sensitivity: 'base' })
+      );
 
       setRoomData(sortedRooms);
       setTempData(sortedRooms);
       setRoomTypes(types);
       if (types.length > 0) setNewRoom(prev => ({ ...prev, roomTypeId: types[0].id }));
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error(error);
     }
-  };
-  useEffect(() => { loadInitialData(); }, [withLoading]);
+  }, [withLoading]);
+
+  useEffect(() => {
+    const init = async () => {
+      await loadInitialData();
+    };
+    
+    init();
+  }, [withLoading]);
 
   const handleRoomChange = <K extends keyof IRoom>( id: string, field: K, value: IRoom[K] ) => {
     setTempData(prev => 
@@ -348,7 +355,7 @@ const RoomPriceTab = () => {
           </TableContainer>
         </DialogContent>
 
-        {!historyLoading && roomHistory.length > 0 && (
+        { roomHistory.length > 0 && (
           <Box sx={{ borderTop: '1px solid #e2e8f0', bgcolor: '#fff' }}>
             <TablePagination
               component="div"
