@@ -24,10 +24,7 @@ export const LineService = {
 
     try {
 
-      const imageUrl = data.billImageData; 
-
-      console.log(`📡 ส่งรูปจาก Supabase ไปที่ LINE: ${imageUrl}`);
-      
+      const imageUrl = data.billImageData;       
       await client.pushMessage({
         to: lineUserId,
         messages: [{
@@ -39,7 +36,6 @@ export const LineService = {
       
       console.log(`✅ LINE Image sent: Room ${data.roomNumber}`);
     } catch (error: any) {
-      // พิมพ์ Error ออกมาดูให้ชัดเจน
       console.error("❌ LINE Image Error Detail:", JSON.stringify(error.body || error.message, null, 2));
     }
   },

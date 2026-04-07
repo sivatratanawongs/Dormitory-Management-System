@@ -1,28 +1,35 @@
 import { PrismaClient } from '@prisma/client';
+import sharp from 'sharp';
 import { IUpdateMeterRequest } from '../interfaces/billing.interface.js';
 import { LineService } from './lineService.js';
 import { supabase } from '../config/supabase.js'; 
 
 const prisma = new PrismaClient();
 
-
 async function uploadToSupabase(base64Data: string, roomNumber: string): Promise<string | null> {
   try {
-    if (!base64Data || !base64Data.includes('base64,')) {
-      console.error("❌ ข้อมูลไม่ใช่ Base64 ที่ถูกต้อง");
+    if (!base64Data?.includes('base64,')) {
       return null;
     }
 
     const base64Image = base64Data.split(';base64,').pop();
     if (!base64Image) return null;
 
-    const buffer = Buffer.from(base64Image, 'base64');
-    const fileName = `bills/room-${roomNumber}-${Date.now()}.jpg`;
+    const inputBuffer = Buffer.from(base64Image, 'base64');
 
-    const { data, error } = await supabase.storage
+    const compressedBuffer = await sharp(inputBuffer)
+      .png({ 
+        palette: true,
+        compressionLevel: 9
+      })
+      .toBuffer();
+
+    const fileName = `bills/room-${roomNumber}-${Date.now()}.png`;
+
+    const { error } = await supabase.storage
       .from('qrcodes')
-      .upload(fileName, buffer, {
-        contentType: 'image/jpeg',
+      .upload(fileName, compressedBuffer, {
+        contentType: 'image/png',
         upsert: true,
         cacheControl: '3600'
       });
@@ -35,11 +42,10 @@ async function uploadToSupabase(base64Data: string, roomNumber: string): Promise
 
     return publicUrl;
   } catch (err) {
-    console.error(err);
+    console.error("❌ Sharp/Upload Error:", err);
     return null;
   }
 }
-
 
 export const BillingService = {
   getLastReadings: async () => {
