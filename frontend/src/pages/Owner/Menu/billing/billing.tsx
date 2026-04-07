@@ -84,84 +84,86 @@ const BillingPage = () => {
     setRooms(rooms.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   };
 
-  const handleConfirmAndSave = async () => {
-    if (!systemSetting) return;
+const handleConfirmAndSave = async () => {
+  if (!systemSetting) return;
 
-    try {
-      const activeRooms = rooms.filter((room) => room.tenantId !== null);
-      const emptyRooms = rooms.filter((room) => room.tenantId === null);
+  try {
+    const activeRooms = rooms.filter((room) => room.tenantId !== null);
+    const emptyRooms = rooms.filter((room) => room.tenantId === null);
 
-      const activeBillings: ICreateBilling[] = await Promise.all(
-        activeRooms.map(async (room) => {
-          const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
-          const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
-          
-          let base64Image: string | null = null;
-          if (billRefs.current[room.id]) {
-            const element = billRefs.current[room.id];
-            if (element) {
-              const canvas = await html2canvas(element, {
-                scale: 0.8,
-                useCORS: true,
-                backgroundColor: "#ffffff",
-              });
-              base64Image = canvas.toDataURL("image/jpeg", 0.7); 
-            }
-          }
-
-          return {
-            roomId: room.id,
-            tenantId: room.tenantId,
-            month: format(billingMonth || new Date(), "yyyy-MM"),
-            elecUnitPrev: room.prevElec,
-            elecUnitCurr: currentElecVal,
-            waterUnitPrev: room.prevWater,
-            waterUnitCurr: currentWaterVal,
-            roomPrice: room.roomPrice,
-            elecRate: systemSetting.elecRate,
-            waterRate: systemSetting.waterRate,
-            totalAmount: calculateTotal(room),
-            status: "pending" as BillingStatus,
-            billImageData: base64Image,
-          };
-        })
-      );
-
-      const emptyBillings: ICreateBilling[] = emptyRooms.map((room) => ({
-        roomId: room.id,
-        tenantId: null, 
-        month: format(billingMonth || new Date(), "yyyy-MM"),
-        elecUnitPrev: room.prevElec,
-        elecUnitCurr: room.prevElec,
-        waterUnitPrev: room.prevWater,
-        waterUnitCurr: room.prevWater,
-        roomPrice: 0,
-        elecRate: systemSetting.elecRate,
-        waterRate: systemSetting.waterRate,
-        totalAmount: 0,
-        status: "no_tenant" as BillingStatus,
-        billImageData: null,
-      }));
-
-      const allBillings: ICreateBilling[] = [...activeBillings, ...emptyBillings];
-
-      if (allBillings.length === 0) return;
-
-      await withLoading((async () => {
-        try {
-          await BillingFrontendService.createBulk(allBillings);
-          setOpenDialog(false);
-          globalThis.location.reload();
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            console.error("Save Error:", error.message);
+    const activeBillings: ICreateBilling[] = await Promise.all(
+      activeRooms.map(async (room) => {
+        const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
+        const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
+        
+        let base64Image: string | null = null;
+        if (billRefs.current[room.id]) {
+          const element = billRefs.current[room.id];
+          if (element) {
+            const canvas = await html2canvas(element, {
+              scale: 0.8, // ลดขนาดเพื่อเลี่ยง RAM Server เต็ม
+              useCORS: true,
+              backgroundColor: "#ffffff",
+            });
+            base64Image = canvas.toDataURL("image/jpeg", 0.7);
           }
         }
-      })());
-    } catch (error: unknown) {
-      console.error("Process Error:", error);
-    }
-  };
+
+        return {
+          roomId: room.id,
+          roomNumber: room.roomNumber, // ✨ ส่งไปเพื่อให้ Backend ตั้งชื่อไฟล์ได้
+          tenantId: room.tenantId,
+          month: format(billingMonth || new Date(), "yyyy-MM"),
+          elecUnitPrev: room.prevElec,
+          elecUnitCurr: currentElecVal,
+          waterUnitPrev: room.prevWater,
+          waterUnitCurr: currentWaterVal,
+          roomPrice: room.roomPrice,
+          elecRate: systemSetting.elecRate,
+          waterRate: systemSetting.waterRate,
+          totalAmount: calculateTotal(room),
+          status: "pending" as BillingStatus,
+          billImageData: base64Image,
+        };
+      })
+    );
+
+    const emptyBillings: ICreateBilling[] = emptyRooms.map((room) => ({
+      roomId: room.id,
+      roomNumber: room.roomNumber, // ✨ ห้องว่างก็ต้องส่ง roomNumber ไปด้วย
+      tenantId: null, 
+      month: format(billingMonth || new Date(), "yyyy-MM"),
+      elecUnitPrev: room.prevElec,
+      elecUnitCurr: room.prevElec,
+      waterUnitPrev: room.prevWater,
+      waterUnitCurr: room.prevWater,
+      roomPrice: 0,
+      elecRate: systemSetting.elecRate,
+      waterRate: systemSetting.waterRate,
+      totalAmount: 0,
+      status: "no_tenant" as BillingStatus,
+      billImageData: null,
+    }));
+
+    const allBillings: ICreateBilling[] = [...activeBillings, ...emptyBillings];
+    if (allBillings.length === 0) return;
+
+    await withLoading((async () => {
+      try {
+        await BillingFrontendService.createBulk(allBillings);
+        setOpenDialog(false);
+        globalThis.location.reload();
+      } catch (error: unknown) {
+        // แก้ไข error: any เป็น unknown ตาม ESLint
+        const message = error instanceof Error ? error.message : "Unknown error";
+        console.error("Save Error:", message);
+        alert("บันทึกไม่สำเร็จ: " + message);
+      }
+    })());
+  } catch (error: unknown) {
+    console.error("Process Error:", error);
+  }
+};
 
   const formatThaiDate = (date: Date | null, isMonthOnly = false) => {
     if (!date || Number.isNaN(date.getTime())) return "";
