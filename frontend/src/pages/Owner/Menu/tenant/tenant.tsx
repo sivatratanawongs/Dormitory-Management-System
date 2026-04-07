@@ -2,8 +2,10 @@ import { Box, Typography, Paper, Chip, Button, IconButton, Alert, Stack } from '
 import { Phone, LogOut, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+
+// Component
 import MoveOutDialog from '../../../../components/MoveOutDialog';
-import { LoadingProvider } from '../../components/LoadingContext';
+import { useLoading } from '../../../../components/LoadingContext';
 
 // Service 
 import { SettingService } from '../../../../services/settingService'; 
@@ -14,7 +16,7 @@ import type { IRoom } from '../../../../type/room'
 import type { ITenant } from '../../../../type/tenant';
 
 const TenantsPage = () => {
-  const [loading, setLoading] = useState(true);
+  const { showLoading, hideLoading } = useLoading();
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<IRoom | null>(null);
@@ -23,7 +25,7 @@ const TenantsPage = () => {
 
   const loadAllData = async () => {
     try {
-      setLoading(true);
+      showLoading();
       setError(null);
       const [roomsData, tenantsResponse] = await Promise.all([
         SettingService.getRooms(),
@@ -49,15 +51,14 @@ const TenantsPage = () => {
       setError("ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
       console.error(err);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
   const handleMoveOutConfirm = async () => {
-
     if (!selectedRoom?.tenants?.length) return;
     try {
-      setLoading(true);
+      showLoading();
       const tenantId = selectedRoom.tenants[0].id;
       
       await TenantFrontendService.moveOut(tenantId, { 
@@ -65,23 +66,15 @@ const TenantsPage = () => {
       });
       
       await loadAllData(); 
-      
     } catch (err) {
       console.error("Move out error:", err);
     } finally {
-      setLoading(false);
+      hideLoading();
       setIsMoveOutOpen(false);
-      setSelectedRoom(null);
     }
   };
 
   useEffect(() => { loadAllData() }, []);
-
-  if (loading) return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 10, gap: 2 }}>
-      <LoadingProvider />
-    </Box>
-  );
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
