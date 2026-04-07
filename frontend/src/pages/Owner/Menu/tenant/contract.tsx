@@ -414,6 +414,7 @@ const ContractPage = () => {
                       <TextField 
                         fullWidth 
                         label="วันที่ทำสัญญา" 
+                        slotProps={{ inputLabel: { shrink: false } }} 
                         sx={{ 
                           bgcolor: 'white', 
                           borderRadius: 2,
@@ -434,6 +435,7 @@ const ContractPage = () => {
                       <TextField 
                         fullWidth 
                         label="วันที่เริ่มเข้าพัก" 
+                        slotProps={{ inputLabel: { shrink: false } }}
                         sx={{ bgcolor: 'white', borderRadius: 2 }} 
                       />
                     }
@@ -449,6 +451,7 @@ const ContractPage = () => {
                       <TextField 
                         fullWidth 
                         label="วันที่สิ้นสุดสัญญา" 
+                        slotProps={{ inputLabel: { shrink: false } }}
                         sx={{ bgcolor: 'white', borderRadius: 2 }} 
                       />
                     }
