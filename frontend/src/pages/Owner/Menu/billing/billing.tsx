@@ -4,9 +4,10 @@ import { ReceiptText, Send, X } from "lucide-react";
 import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { th } from "date-fns/locale";
 import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 //Service
 import { BillingFrontendService } from "../../../../services/billingService";
@@ -196,68 +197,45 @@ const BillingPage = () => {
             บันทึกมิเตอร์หอพัก
           </Typography>
         </Box>
-<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: "100%", md: "auto" } }}>
-    
-    {/* 1. วันที่จดหน่วย */}
-    <DatePicker
-      label="วันที่จดหน่วย"
-      value={recordDate}
-      onChange={(newValue) => setRecordDate(newValue)}
-      // ใช้ slots.textField แทน slotProps ในบางกรณีที่ MUI รั้น
-      slots={{
-        textField: (params) => (
-          <TextField
-            {...params}
-            size="small"
-            // หัวใจคือตรงนี้: เราคุม value เอง 100%
-            value={formatThaiDate(recordDate)} 
-            InputProps={{
-              ...params.InputProps,
-              readOnly: true,
-            }}
-            onClick={(e) => {
-              const button = e.currentTarget.querySelector('button');
-              if (button) button.click();
-            }}
-            sx={{ 
-              width: 300, 
-              cursor: 'pointer',
-              '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
-            }}
-          />
-        ),
-      }}
-    />
-
-    {/* 2. รอบบิลประจำเดือน */}
-    <DatePicker
-      label="รอบบิลประจำเดือน"
-      views={['year', 'month']}
-      value={billingMonth}
-      onChange={(newValue) => setBillingMonth(newValue)}
-      slots={{
-        textField: (params) => (
-          <TextField
-            {...params}
-            size="small"
-            value={formatThaiDate(billingMonth, true)}
-            InputProps={{
-              ...params.InputProps,
-              readOnly: true,
-            }}
-            onClick={(e) => {
-              const button = e.currentTarget.querySelector('button');
-              if (button) button.click();
-            }}
-            sx={{ width: 300, cursor: 'pointer' }}
-          />
-        ),
-      }}
-    />
-    
-  </Box>
-</LocalizationProvider>
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: { xs: "100%", md: "auto" } }}>
+              <Box sx={{ position: 'relative' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                    วันที่จดหน่วย
+                  </Typography>
+                  <DatePicker
+                    selected={recordDate}
+                    onChange={(date: Date | null) => setRecordDate(date)}
+                    locale={th}
+                    value={formatThaiDate(recordDate)} 
+                    customInput={
+                      <TextField 
+                        size="small" 
+                        sx={{ width: 300, '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: 2 } }}
+                      />
+                    }
+                  />
+                </Box>
+            <Box sx={{ position: 'relative' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                  รอบบิลประจำเดือน
+                </Typography>
+                <DatePicker
+                  selected={billingMonth}
+                  onChange={(date: Date | null) => setBillingMonth(date)}
+                  locale={th}
+                  showMonthYearPicker
+                  value={formatThaiDate(billingMonth, true)}
+                  customInput={
+                    <TextField 
+                      size="small" 
+                      sx={{ width: 300, '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: 2 } }}
+                    />
+                  }
+                />
+              </Box>
+          </Box>
+        </LocalizationProvider>
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "1fr 1fr 1fr 1fr" }, gap: 2, mb: 4 }}>
