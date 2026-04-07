@@ -70,7 +70,12 @@ const BillingPage = () => {
               if (billRefs.current[room.id]) {
                   const element = billRefs.current[room.id];
                   if (element) {
-                    const canvas = await html2canvas(element, { scale: 2 });
+                    const canvas = await html2canvas(element, {
+                      scale: 2,
+                      useCORS: true,
+                      allowTaint: false,
+                      backgroundColor: "#ffffff",
+                  });
                     base64Image = canvas.toDataURL("image/png");
                   }
               }
