@@ -605,22 +605,20 @@ const handleConfirmAndSave = async () => {
                 >
                   <Paper
                     key={room.id}
+                    ref={(el: HTMLDivElement | null) => {
+                      billRefs.current[room.id] = el;
+                    }}
+                    elevation={3} 
                     sx={{
-                      p: 0,
                       borderRadius: 1,
-                      bgcolor: "white",
+                      bgcolor: "#ffffff", 
                       border: "1px solid #e2e8f0",
                       overflow: "hidden",
-                    }}
-                  >
-                    <Box sx={{ p: 3, textAlign: "center", bgcolor: "#fff" }}>
-                      <Typography
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#66b2b2",
-                          fontSize: "1.2rem",
-                        }}
-                      >
+                      m: 1,
+                      p: 1,
+                    }}>
+                    <Box sx={{ p: 4, textAlign: "center", bgcolor: "#fff" }}> 
+                      <Typography sx={{ fontWeight: "bold", color: "#66b2b2", fontSize: "1.2rem" }}>
                         หอพักบ้านจตุพร
                       </Typography>
                       <Typography
