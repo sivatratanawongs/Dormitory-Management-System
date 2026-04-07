@@ -388,37 +388,42 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  const parseDate = (val: string | number | Date | null | undefined): Date | null => {
+  if (!val || val === "-" || val === "") return null;
+  try {
+    // ถ้าเป็นตัวเลข (Timestamp) ให้ส่งเข้า new Date() ได้เลย
+    if (typeof val === 'number') return new Date(val);
+    
+    const dateStr = typeof val === 'string' ? val.replace(' ', 'T') : val;
+    const d = new Date(dateStr);
+    return Number.isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+};
+
   const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
-    if (!val || val === "-" || val === "") return "-";
-
-    try {
-      let date: Date;
-      
-      if (typeof val === 'string') {
-        const standardizedDate = val.replace(' ', 'T');
-        date = new Date(standardizedDate);
-      } else {
-        date = new Date(val);
-      }
-
-      if (Number.isNaN(date.getTime())) return "-";
-      const yearBE = date.getFullYear() + 543;
-      return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
-    } catch (e) {
-      console.error(e);
-      return "-";
-    }
+  const date = parseDate(val);
+  if (!date) return "-";
+  
+  const yearBE = date.getFullYear() + 543;
+  return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
   const renderValue = (): string => {
-    if (!value || value === "-" || value === "") return "-";
-    if (type === 'date') {
-      return getThaiDateDisplay(value);
+    if (!value || value === "-" || value === "") {
+      return "-";
     }
-    if (type === 'number') {
-      return Number(value || 0).toLocaleString();
+    switch (type) {
+      case 'date':
+        return getThaiDateDisplay(value);
+      
+      case 'number':
+        return Number(value || 0).toLocaleString();
+      
+      default:
+        return String(value);
     }
-    return String(value);
   };
 
   const renderEditInput = () => {
@@ -429,7 +434,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             open={isDatePickerOpen}
             onInputClick={() => setIsDatePickerOpen(true)}
             onClickOutside={() => setIsDatePickerOpen(false)}
-            selected={value && value !== "-" ? new Date(value as string) : null}
+            selected={parseDate(value)}
             onChange={(date: Date | null) => {
               if (date) {
                 const formattedDate = format(date, 'yyyy-MM-dd');
@@ -451,7 +456,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px',
                     bgcolor: '#fff',
-                    '& input': { cursor: 'pointer' }
+                    '& input': { cursor: 'pointer', fontWeight: 600 }
                   }
                 }}
               />
@@ -507,11 +512,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
           multiline={label.includes("ที่อยู่")}
           rows={label.includes("ที่อยู่") ? 3 : 1}
           value={renderValue()}
-          slotProps={{
-            input: {
-              readOnly: true,
-            },
-          }}
+          slotProps={{ input: { readOnly: true } }}
           sx={{
             flex: 1,
             '& .MuiOutlinedInput-root': {
@@ -520,16 +521,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
               fontSize: '0.875rem',
               fontWeight: 600,
               color: '#1e293b',
-              '& fieldset': { 
-                borderColor: '#e2e8f0',
-                borderStyle: 'solid' 
-              },
-              '&:hover fieldset': {
-                borderColor: '#e2e8f0',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#e2e8f0', 
-              },
+              '& fieldset': { borderColor: '#e2e8f0' },
               '& .MuiInputBase-input.Mui-readOnly': {
                 WebkitTextFillColor: '#1e293b', 
               }
