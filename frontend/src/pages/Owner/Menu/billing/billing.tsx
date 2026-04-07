@@ -161,11 +161,18 @@ const BillingPage = () => {
 
   const getImageUrl = (path: string | null | undefined) => {
     if (!path) return "";
-    if (path.startsWith("http")) return path; 
-    if (path.startsWith("data:")) return path; 
     
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
-    return `${baseUrl}${path}`;
+    let finalUrl = "";
+    if (path.startsWith("http")) {
+      finalUrl = path;
+    } else if (path.startsWith("data:")) {
+      return path;
+    } else {
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
+      finalUrl = `${baseUrl}${path}`;
+    }
+    const separator = finalUrl.includes('?') ? '&' : '?';
+    return `${finalUrl}${separator}t=${new Date().getTime()}`;
   };
 
   return (
@@ -428,7 +435,7 @@ const BillingPage = () => {
                       <img 
                         src={getImageUrl(paymentSetting?.qrCodeUrl)} 
                         alt="QR Code"
-                        crossOrigin="anonymous" 
+                        crossOrigin="anonymous"
                         style={{ 
                           width: '100px',
                           height: '100px',
