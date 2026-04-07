@@ -101,7 +101,7 @@ const handleConfirmAndSave = async () => {
           const element = billRefs.current[room.id];
           if (element) {
           const canvas = await html2canvas(element, {
-            scale: 1, 
+            scale: 2, 
             useCORS: true,
             backgroundColor: "#ffffff",
             logging: false,
