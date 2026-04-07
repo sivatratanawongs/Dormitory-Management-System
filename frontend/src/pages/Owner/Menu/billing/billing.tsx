@@ -58,76 +58,81 @@ const BillingPage = () => {
   };
 
   const handleConfirmAndSave = async () => {
-      if (!systemSetting) return;
-      setOpenDialog(false); 
+    if (!systemSetting) return;
+    setOpenDialog(false);
 
-      await withLoading((async () => {
+    await withLoading((async () => {
       try {
-          const activeRooms = rooms.filter(room => room.tenantId !== null);
-          const emptyRooms = rooms.filter(room => room.tenantId === null);
+        const activeRooms = rooms.filter(room => room.tenantId !== null);
+        const emptyRooms = rooms.filter(room => room.tenantId === null);
 
-          const activeBillings = await Promise.all(activeRooms.map(async (room) => {
-              const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
-              const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
+        // 1. จัดการห้องที่มีผู้เช่า (ต้องทำ Canvas)
+        const activeBillings = await Promise.all(activeRooms.map(async (room) => {
+          const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
+          const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
 
-              let base64Image = null;
-
-              if (billRefs.current[room.id]) {
-                  const element = billRefs.current[room.id];
-                  if (element) {
-                  const canvas = await html2canvas(element, {
-                      scale: 2,
-                      useCORS: true,
-                      allowTaint: false,
-                      backgroundColor: "#ffffff",
-                      logging: false, 
-                      imageTimeout: 0,
-                  });
-                  base64Image = canvas.toDataURL("image/png");
-                  }
-              }
-
-              return {
-                  roomId: room.id,
-                  tenantId: room.tenantId,
-                  month: format(billingMonth || new Date(), "yyyy-MM"),
-                  elecUnitPrev: room.prevElec,
-                  elecUnitCurr: currentElecVal,
-                  waterUnitPrev: room.prevWater,
-                  waterUnitCurr: currentWaterVal,
-                  roomPrice: room.roomPrice,
-                  elecRate: systemSetting.elecRate,
-                  waterRate: systemSetting.waterRate,
-                  totalAmount: calculateTotal(room),
-                  status: "pending" as BillingStatus,
-                  billImageData: base64Image 
-              };
-          }));
-
-          const emptyBillings = emptyRooms.map(room => ({
-              roomId: room.id,
-              tenantId: null,
-              month: format(billingMonth || new Date(), "yyyy-MM"),
-              elecUnitPrev: room.prevElec,
-              elecUnitCurr: room.prevElec,
-              waterUnitPrev: room.prevWater,
-              waterUnitCurr: room.prevWater,
-              roomPrice: room.roomPrice,
-              elecRate: systemSetting.elecRate,
-              waterRate: systemSetting.waterRate,
-              totalAmount: calculateTotal(room),
-              status: "no_tenant" as BillingStatus,
-              billImageData: null
-          }));
-
-          const allBillings = [...activeBillings, ...emptyBillings];
-
-          if (allBillings.length > 0) {
-            await BillingFrontendService.createBulk(allBillings);
-            globalThis.location.reload();
+          let base64Image = null;
+          // Capture เฉพาะห้องที่มีผู้เช่า
+          if (billRefs.current[room.id]) {
+            const element = billRefs.current[room.id];
+            if (element) {
+              const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+                logging: false,
+              });
+              base64Image = canvas.toDataURL("image/png");
+            }
           }
+
+          return {
+            roomId: room.id,
+            tenantId: room.tenantId, // มีค่าแน่นอน
+            month: format(billingMonth || new Date(), "yyyy-MM"),
+            elecUnitPrev: room.prevElec,
+            elecUnitCurr: currentElecVal,
+            waterUnitPrev: room.prevWater,
+            waterUnitCurr: currentWaterVal,
+            roomPrice: room.roomPrice,
+            elecRate: systemSetting.elecRate,
+            waterRate: systemSetting.waterRate,
+            totalAmount: calculateTotal(room),
+            status: "pending" as BillingStatus,
+            billImageData: base64Image 
+          };
+        }));
+
+        // 2. จัดการห้องว่าง (ส่งไปเพื่อ Update มิเตอร์ตั้งต้นของเดือนถัดไป)
+        const emptyBillings = emptyRooms.map(room => ({
+          roomId: room.id,
+          tenantId: null, // Prisma ต้องรองรับ nullable ใน schema.prisma
+          month: format(billingMonth || new Date(), "yyyy-MM"),
+          elecUnitPrev: room.prevElec,
+          elecUnitCurr: room.prevElec, // ห้องว่างหน่วยเท่าเดิม
+          waterUnitPrev: room.prevWater,
+          waterUnitCurr: room.prevWater, // ห้องว่างหน่วยเท่าเดิม
+          roomPrice: room.roomPrice,
+          elecRate: systemSetting.elecRate,
+          waterRate: systemSetting.waterRate,
+          totalAmount: 0, // ห้องว่างยอดเป็น 0
+          status: "no_tenant" as BillingStatus,
+          billImageData: null
+        }));
+
+        // รวมร่างข้อมูลทั้งหมด
+        const allBillings = [...activeBillings, ...emptyBillings];
+
+        if (allBillings.length > 0) {
+          // ส่งเข้า API ชุดเดียว
+          await BillingFrontendService.createBulk(allBillings);
+          // ใช้การ Navigate หรือดึงข้อมูลใหม่แทนการ reload หน้าจอจะสมูทกว่าครับ
+          // แต่ถ้าสะดวกแบบเดิมก็ใช้ reload() ได้
+          globalThis.location.reload();
+        }
       } catch (error) {
-          console.error(error);
+        console.error("Failed to save billings:", error);
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาตรวจสอบ Log");
       }
     })());
   };
