@@ -17,6 +17,7 @@ import { TenantFrontendService } from "../../../../services/tenantService";
 
 const BillingPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
+  const { showLoading, hideLoading } = useLoading();
   const [rooms, setRooms] = useState<BillingRoomState[]>([]);
   const [recordDate, setRecordDate] = useState<Date | null>(new Date()); 
   const billRefs = useRef<{ [key: string]: HTMLElement | null }>({});
@@ -56,8 +57,12 @@ const BillingPage = () => {
 
   const handleConfirmAndSave = async () => {
       if (!systemSetting) return;
+      setOpenDialog(false); 
+      showLoading();
       
       try {
+          await new Promise(resolve => setTimeout(resolve, 300));
+
           const activeRooms = rooms.filter(room => room.tenantId !== null);
           const emptyRooms = rooms.filter(room => room.tenantId === null);
 
@@ -75,7 +80,7 @@ const BillingPage = () => {
                       useCORS: true,
                       allowTaint: false,
                       backgroundColor: "#ffffff",
-                      logging: true, 
+                      logging: false, 
                       imageTimeout: 0,
                   });
                   base64Image = canvas.toDataURL("image/png");
@@ -117,15 +122,17 @@ const BillingPage = () => {
 
           const allBillings = [...activeBillings, ...emptyBillings];
 
-          if (allBillings.length === 0) return;
+          if (allBillings.length === 0) {
+            hideLoading();
+            return;
+          }
           
           await BillingFrontendService.createBulk(allBillings);
-          
-          setOpenDialog(false);
           globalThis.location.reload();
 
       } catch (error) {
           console.error("Save Error:", error);
+          hideLoading();
       }
   };
 
