@@ -1,11 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense } from 'react';
 import { ownerRoutes } from './ownerRoutes';
-
+import { LoadingProvider } from '../../components/LoadingContext';
 
 const AppRouter = () => {
   return (
-    <Suspense fallback={<div>กำลังโหลด...</div>}>
+    <LoadingProvider>
       <Routes>
         <Route path="/" element={<Navigate to="/owner" replace />} />
 
@@ -24,7 +23,7 @@ const AppRouter = () => {
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Suspense>
+    </LoadingProvider>
   );
 };
 

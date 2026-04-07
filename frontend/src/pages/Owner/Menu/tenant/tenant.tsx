@@ -1,8 +1,10 @@
-import { Box, Typography, Paper, Chip, Button, IconButton, CircularProgress, Alert, Stack } from '@mui/material';
+import { Box, Typography, Paper, Chip, Button, IconButton, Alert, Stack } from '@mui/material';
 import { Phone, LogOut, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import MoveOutDialog from '../../../../components/MoveOutDialog';
+import { LoadingProvider } from '../../components/LoadingContext';
+
 // Service 
 import { SettingService } from '../../../../services/settingService'; 
 import { TenantFrontendService } from '../../../../services/tenantService';
@@ -77,8 +79,7 @@ const TenantsPage = () => {
 
   if (loading) return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 10, gap: 2 }}>
-      <CircularProgress sx={{ color: '#1e293b' }} />
-      <Typography color="text.secondary">กำลังโหลดข้อมูลบ้านจตุพร...</Typography>
+      <LoadingProvider />
     </Box>
   );
 
