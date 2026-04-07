@@ -459,7 +459,6 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '8px',
                     bgcolor: '#fff',
-                    '& input': { cursor: 'pointer', fontWeight: 600 }
                   }
                 }}
               />
@@ -501,7 +500,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
       py: 0.5 
     }}>
       <Box sx={{ minWidth: 140, flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, color: '#64748b' }}>
+        <Typography variant="body2" sx={{ color: '#64748b' }}>
           {label}
         </Typography>
       </Box>
