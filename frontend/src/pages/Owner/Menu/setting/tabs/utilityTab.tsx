@@ -65,7 +65,7 @@ const UtilityTab = () => {
         commonFee: Number(tempData.commonFee),
         waterMinUnit: Number(tempData.minWaterUnit),
       };
-
+      setIsEditing(false);
       await withLoading(SettingService.updateSettings(dataToSave));
       
       const newLogs: RateHistory[] = [];
@@ -97,7 +97,7 @@ const UtilityTab = () => {
         commonFee: Number(tempData.commonFee),
         minWaterUnit: Number(tempData.minWaterUnit),
       });
-      setIsEditing(false);
+      
     } catch (error) {
       console.error(error);
     }
