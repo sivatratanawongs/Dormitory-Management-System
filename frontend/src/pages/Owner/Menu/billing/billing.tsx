@@ -93,35 +93,29 @@ const handleConfirmAndSave = async () => {
 
     const activeBillings = await Promise.all(
       activeRooms.map(async (room) => {
-        const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
-        const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
-        
         let base64Image = null;
         if (billRefs.current[room.id]) {
           const element = billRefs.current[room.id];
           if (element) {
             const canvas = await html2canvas(element, {
-              scale: 1, // หรือลอง 0.8 ถ้ายังพังอยู่
+              scale: 0.8, // ลดลงอีกนิดเพื่อความชัวร์
               useCORS: true,
               backgroundColor: "#ffffff",
-              logging: false,
-              imageTimeout: 0,
             });
-            // ✨ เปลี่ยนจาก png เป็น jpeg และลด quality เหลือ 0.7
-            // วิธีนี้จะลดขนาด Payload ได้มหาศาล ช่วยให้ไม่พัง 500 ครับ
-            base64Image = canvas.toDataURL("image/jpeg", 0.7);
+            // ✨ เปลี่ยนเป็น jpeg 0.6 ขนาดจะเล็กลงมหาศาล ช่วยให้ Backend ทำงานไหว
+            base64Image = canvas.toDataURL("image/jpeg", 0.6);
           }
         }
 
         return {
           roomId: room.id,
-          roomNumber: room.roomNumber,
+          roomNumber: room.roomNumber, // ต้องส่งเพื่อให้ Backend ตั้งชื่อไฟล์ได้
           tenantId: room.tenantId,
           month: format(billingMonth || new Date(), "yyyy-MM"),
           elecUnitPrev: room.prevElec,
-          elecUnitCurr: currentElecVal,
+          elecUnitCurr: room.currentElec === "" ? room.prevElec : Number(room.currentElec),
           waterUnitPrev: room.prevWater,
-          waterUnitCurr: currentWaterVal,
+          waterUnitCurr: room.currentWater === "" ? room.prevWater : Number(room.currentWater),
           roomPrice: room.roomPrice,
           elecRate: systemSetting.elecRate,
           waterRate: systemSetting.waterRate,
@@ -134,7 +128,7 @@ const handleConfirmAndSave = async () => {
 
     const emptyBillings = emptyRooms.map((room) => ({
       roomId: room.id,
-      roomNumber: room.roomNumber, // ✨ ต้องมีเพื่อให้ Backend อ้างอิงได้
+      roomNumber: room.roomNumber,
       tenantId: null, 
       month: format(billingMonth || new Date(), "yyyy-MM"),
       elecUnitPrev: room.prevElec,
@@ -152,14 +146,16 @@ const handleConfirmAndSave = async () => {
     const allBillings = [...activeBillings, ...emptyBillings];
     if (allBillings.length === 0) return;
 
-    // ✨ ห่อด้วย withLoading เพื่อให้ User รู้ว่ากำลังประมวลผล (เพราะรูปเยอะจะใช้เวลานาน)
     await withLoading((async () => {
       try {
         await BillingFrontendService.createBulk(allBillings);
         setOpenDialog(false);
         globalThis.location.reload();
-      } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
         console.error("Save Error:", error);
+        // แสดง Alert เพื่อดูว่า Server บ่นว่าอะไรกันแน่
+        alert("บันทึกไม่สำเร็จ (500): " + (error.response?.data?.message || "Server รับข้อมูลขนาดใหญ่ไม่ไหว หรือ Database ติดขัด"));
       }
     })());
   } catch (error) {
