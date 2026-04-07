@@ -134,11 +134,9 @@ const BillingPage = () => {
   const formatThaiDate = (date: Date | null, isMonthOnly = false) => {
     if (!date) return "";
     const yearBE = date.getFullYear() + 543;
-    
     if (isMonthOnly) {
       return `${format(date, 'MMMM', { locale: th })} ${yearBE}`;
     }
-    
     return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
@@ -204,12 +202,13 @@ const BillingPage = () => {
               label="วันที่จดหน่วย" 
               value={recordDate} 
               onChange={(newValue) => setRecordDate(newValue)} 
-              format="dd/MM/yyyy" 
               slotProps={{
                 field: { readOnly: true },
                 textField: {
                   size: 'small',
-                  value: formatThaiDate(recordDate), 
+                  inputProps: {
+                    value: formatThaiDate(recordDate),
+                  },
                   onClick: (e) => {
                     const button = e.currentTarget.querySelector('button');
                     if (button) button.click();
@@ -217,8 +216,7 @@ const BillingPage = () => {
                   sx: { 
                     width: 300, 
                     cursor: 'pointer',
-                    '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white', cursor: 'pointer' },
-                    '& input': { cursor: 'pointer' }
+                    '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'white' },
                   }
                 }
               }}
@@ -227,23 +225,13 @@ const BillingPage = () => {
             label="รอบบิลประจำเดือน" 
             views={['year', 'month']} 
             value={billingMonth} 
-            onChange={(newValue) => setBillingMonth(newValue)} 
-            format="MM/yyyy"
+            onChange={(newValue) => setBillingMonth(newValue)}
             slotProps={{
-              field: { readOnly: true },
               textField: {
                 size: 'small',
+                sx: { width: 300 },
                 value: formatThaiDate(billingMonth, true),
-                onClick: (e) => {
-                  const button = e.currentTarget.querySelector('button');
-                  if (button) button.click();
-                },
-                sx: { 
-                  width: 300, 
-                  cursor: 'pointer',
-                  '& .MuiOutlinedInput-root': { cursor: 'pointer' },
-                  '& input': { cursor: 'pointer' }
-                }
+                readOnly: true,
               }
             }}
           />
