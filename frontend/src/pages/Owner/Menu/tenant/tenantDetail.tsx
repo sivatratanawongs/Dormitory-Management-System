@@ -2,11 +2,11 @@ import { useState, useEffect, type ElementType } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Paper, Button, Divider, Chip, IconButton, Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { ChevronLeft, Phone, User, FileText, ArrowRight, Home, File, Image as ImageIcon, Eye, Trash2 } from 'lucide-react';
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { th } from "date-fns/locale";
 import { format } from "date-fns";
+registerLocale('th', th);
 
 // Local imports
 import { TenantFrontendService } from '../../../../services/tenantService';
@@ -388,65 +388,58 @@ const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: Eleme
 const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: DetailItemProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  const getDisplayValue = (val: string | number | Date | null | undefined): string => {
-    if (!val) return "";
+  const getThaiDateDisplay = (val: string | number | Date | null | undefined): string => {
+    if (!val) return "-";
     const date = new Date(val as string);
-    if (Number.isNaN(date.getTime())) return "";
+    if (Number.isNaN(date.getTime())) return "-";
     const yearBE = date.getFullYear() + 543;
     return `${format(date, 'd MMMM', { locale: th })} ${yearBE}`;
   };
 
-  const renderValue = (): string => {
+  const renderValue = () => {
     if (!value) return "-";
-    
-    if (type === 'date') {
-      const date = new Date(value as string);
-      if (Number.isNaN(date.getTime())) return "-";
-      return `${format(date, 'd MMMM', { locale: th })} ${date.getFullYear() + 543}`;
-    }
-    
-    if (type === 'number') {
-      return Number(value || 0).toLocaleString();
-    }
-    
+    if (type === 'date') return getThaiDateDisplay(value);
+    if (type === 'number') return Number(value || 0).toLocaleString();
     return String(value);
   };
 
   const renderEditInput = () => {
     if (type === 'date') {
       return (
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-          <Box sx={{ flex: 1, '& .react-datepicker-wrapper': { width: '100%' } }}>
-            <DatePicker
-                open={isDatePickerOpen}
-                onOpen={() => setIsDatePickerOpen(true)}
-                onClose={() => setIsDatePickerOpen(false)}
-                value={value ? new Date(value as string) : null}
-                onChange={(newValue: Date | null) => {
-                  if (newValue) {
-                    const formattedDate = format(newValue, 'yyyy-MM-dd');
-                    onChange?.(formattedDate);
-                  }
-                }}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    value: getDisplayValue(value), 
-                    inputProps: { readOnly: true },
-                    onClick: () => setIsDatePickerOpen(true),
-                    sx: {
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        bgcolor: '#fff',
-                        '& input': { cursor: 'pointer', fontWeight: 600 }
-                      }
-                    }
+        <Box sx={{ flex: 1, '& .react-datepicker-wrapper': { width: '100%' } }}>
+          <DatePicker
+            open={isDatePickerOpen}
+            onInputClick={() => setIsDatePickerOpen(true)}
+            onClickOutside={() => setIsDatePickerOpen(false)}
+            selected={value ? new Date(value as string) : null}
+            onChange={(date: Date | null) => {
+              if (date) {
+                const formattedDate = format(date, 'yyyy-MM-dd');
+                onChange?.(formattedDate);
+                setIsDatePickerOpen(false);
+              }
+            }}
+            locale="th"
+            value={getThaiDateDisplay(value)}
+            portalId="root-portal"
+            popperClassName="custom-datepicker-popper"
+            customInput={
+              <TextField
+                size="small"
+                fullWidth
+                inputProps={{ readOnly: true }}
+                onClick={() => setIsDatePickerOpen(true)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    bgcolor: '#fff',
+                    '& input': { cursor: 'pointer', fontWeight: 600 }
                   }
                 }}
               />
-          </Box>
-        </LocalizationProvider>
+            }
+          />
+        </Box>
       );
     }
 
@@ -468,6 +461,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             '& fieldset': { borderColor: '#e2e8f0' },
             '&:hover fieldset': { borderColor: '#3b82f6' }
           },
+          // ซ่อนลูกศรในช่องตัวเลข
           '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
           '& input[type=number]': { MozAppearance: 'textfield' },
         }}
