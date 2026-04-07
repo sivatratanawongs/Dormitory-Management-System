@@ -14,6 +14,7 @@ import { SettingService, type IPaymentSetting, type ISystemSetting } from "../..
 //Type 
 import type { BillingRoomState, BillingStatus } from "../../../../type/billing";
 import { TenantFrontendService } from "../../../../services/tenantService";
+import { useLoading } from '../../../../components/LoadingContext';
 
 const BillingPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
