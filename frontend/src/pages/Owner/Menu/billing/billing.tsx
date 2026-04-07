@@ -92,24 +92,17 @@ const BillingPage = () => {
       const emptyRooms = rooms.filter((room) => room.tenantId === null);
       const activeBillings = await Promise.all(
         activeRooms.map(async (room) => {
-          const currentElecVal =
-            room.currentElec === "" ? room.prevElec : Number(room.currentElec);
-          const currentWaterVal =
-            room.currentWater === ""
-              ? room.prevWater
-              : Number(room.currentWater);
+          const currentElecVal = room.currentElec === "" ? room.prevElec : Number(room.currentElec);
+          const currentWaterVal = room.currentWater === "" ? room.prevWater : Number(room.currentWater);
+          
           let base64Image = null;
           if (billRefs.current[room.id]) {
             const element = billRefs.current[room.id];
-
             if (element) {
               const canvas = await html2canvas(element, {
-                scale: 2,
+                scale: 1, 
                 useCORS: true,
-                allowTaint: false,
                 backgroundColor: "#ffffff",
-                logging: true,
-                imageTimeout: 0,
               });
               base64Image = canvas.toDataURL("image/png");
             }
@@ -130,7 +123,7 @@ const BillingPage = () => {
             status: "pending" as BillingStatus,
             billImageData: base64Image,
           };
-        }),
+        })
       );
 
       const emptyBillings = emptyRooms.map((room) => ({
@@ -141,21 +134,29 @@ const BillingPage = () => {
         elecUnitCurr: room.prevElec,
         waterUnitPrev: room.prevWater,
         waterUnitCurr: room.prevWater,
-        roomPrice: room.roomPrice,
+        roomPrice: 0, 
         elecRate: systemSetting.elecRate,
         waterRate: systemSetting.waterRate,
-        totalAmount: calculateTotal(room),
+        totalAmount: 0,
         status: "no_tenant" as BillingStatus,
         billImageData: null,
       }));
 
       const allBillings = [...activeBillings, ...emptyBillings];
+
       if (allBillings.length === 0) return;
-      await BillingFrontendService.createBulk(allBillings);
-      setOpenDialog(false);
-      globalThis.location.reload();
+
+      await withLoading((async () => {
+        try {
+          await BillingFrontendService.createBulk(allBillings);
+          setOpenDialog(false);
+          globalThis.location.reload();
+        } catch (error) {
+          console.error("Save Error:", error);
+        }
+      })());
     } catch (error) {
-      console.error("Save Error:", error);
+      console.error("Process Error:", error);
     }
   };
 
