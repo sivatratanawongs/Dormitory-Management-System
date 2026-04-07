@@ -178,9 +178,10 @@ const RoomPriceTab = () => {
 
   const handleAddNewRoom = async () => {
     try {
+      setOpenAddDialog(false);
       await withLoading(SettingService.addRoom(newRoom));
       await loadInitialData();
-      setOpenAddDialog(false);
+      
       setNewRoom({ roomNumber: '', floor: 1, roomTypeId: roomTypes[0]?.id || '', basePrice: 0, description: '' });
     } catch (error) {
       console.error(error);
@@ -189,11 +190,16 @@ const RoomPriceTab = () => {
 
   const handleViewHistory = async (roomId: string, roomNumber: string) => {
     try {
-      setPage(0);
       setSelectedRoomNumber(roomNumber);
       setHistoryDialogOpen(true);
-      setHistoryLoading(true);
-      const data = await BillingFrontendService.getHistoryByRoom(roomId); 
+      setHistoryLoading(true); 
+      
+      const timer = new Promise((resolve) => setTimeout(resolve, 2000));
+      const [data] = await Promise.all([
+        BillingFrontendService.getHistoryByRoom(roomId),
+        timer
+      ]);
+
       setRoomHistory(data);
     } catch (error) {
       console.error(error);
@@ -208,7 +214,17 @@ const RoomPriceTab = () => {
 
   const isFormValid = newRoom.roomNumber.trim() !== '' && newRoom.floor > 0 && newRoom.basePrice > 0;
 
+  const formatThaiMonth = (dateString: string) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    
+    if (Number.isNaN(date.getTime())) return dateString;
 
+    return date.toLocaleDateString('th-TH', {
+      month: 'long',
+      year: 'numeric',
+    });
+};
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -320,7 +336,10 @@ const RoomPriceTab = () => {
                       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       .map((row) => (
                         <TableRow key={row.id}>
-                          <TableCell sx={{ fontWeight: 600 }}>{row.month}</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>
+                            {formatThaiMonth(row.month)} 
+                          </TableCell>
+                          
                           <TableCell align="center">{Math.max(0, row.waterUnitCurr - row.waterUnitPrev)}</TableCell>
                           <TableCell align="center">{row.waterRate}</TableCell>
                           <TableCell align="center">{Math.max(0, row.elecUnitCurr - row.elecUnitPrev)}</TableCell>
