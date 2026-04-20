@@ -1,7 +1,5 @@
 import * as line from '@line/bot-sdk';
 import dotenv from 'dotenv';
-import fs from 'node:fs';
-import path from 'node:path';
 
 dotenv.config();
 
@@ -18,23 +16,25 @@ export const LineService = {
 
   sendBillingImage: async (lineUserId: string, data: any) => {
     if (!lineUserId || !data.billImageData) {
-      console.log(`⚠️ ข้ามการส่งรูป: ข้อมูลไม่ครบ (Room: ${data.roomNumber})`);
       return;
     }
 
     try {
-
-      const imageUrl = data.billImageData;       
+      const imageUrl = data.billImageData;
       await client.pushMessage({
         to: lineUserId,
-        messages: [{
-          type: 'image',
-          originalContentUrl: imageUrl,
-          previewImageUrl: imageUrl
-        }]
+        messages: [
+          {
+            type: 'text',
+            text: `บิลค่าห้องมาแล้ว กรุณาชำระค่าห้อง 💵`
+          },
+          {
+            type: 'image',
+            originalContentUrl: imageUrl,
+            previewImageUrl: imageUrl
+          }
+        ]
       });
-      
-      console.log(`✅ LINE Image sent: Room ${data.roomNumber}`);
     } catch (error: any) {
       console.error("❌ LINE Image Error Detail:", JSON.stringify(error.body || error.message, null, 2));
     }
@@ -42,9 +42,6 @@ export const LineService = {
 
   sendBillingFlex: async (lineUserId: string, data: any) => {
     if (!lineUserId) return;
-
-    const elecUsed = Math.max(0, (data.elecUnitCurr || 0) - (data.elecUnitPrev || 0));
-    const waterUsed = Math.max(0, (data.waterUnitCurr || 0) - (data.waterUnitPrev || 0));
 
     const flexMessage: any = {
       type: 'flex',
@@ -74,7 +71,6 @@ export const LineService = {
         to: lineUserId,
         messages: [flexMessage]
       });
-      console.log(`✅ LINE Flex sent: Room ${data.roomNumber}`);
     } catch (error: any) {
       console.error("❌ LINE Flex Error:", error.body || error.message);
     }

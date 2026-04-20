@@ -47,12 +47,11 @@ router.post('/webhook', async (req, res) => {
               replyToken,
               messages: [{
                 type: 'text',
-                text: `✅ ผูกข้อมูลสำเร็จ!\nห้อง ${roomNum} เชื่อมต่อกับ LINE เรียบร้อยแล้วค่ะ`
+                text: ` 🏠 บันทึกข้อมูลผู้เช่าห้อง ${roomNum} เรียบร้อยแล้ว 🙏🏻 `
               }]
             });
             console.log(`Successfully linked User: ${userId} to Room: ${roomNum}`);
           } else {
-            // หาไม่เจอ
             await client.replyMessage({
               replyToken,
               messages: [{
