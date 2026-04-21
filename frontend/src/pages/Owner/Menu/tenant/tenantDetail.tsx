@@ -1,7 +1,7 @@
 import { useState, useEffect, type ElementType } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Typography, Paper, Button, Divider, Chip, IconButton, Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
-import { ChevronLeft, Phone, User, FileText, ArrowRight, Home, File, Image as ImageIcon, Eye, Trash2 } from 'lucide-react';
+import { Box, Typography, Paper, Button, Divider, Chip, IconButton, Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, InputAdornment } from '@mui/material';
+import { ChevronLeft, Phone, User, FileText, ArrowRight, Home, File, Image as ImageIcon, Eye, Trash2, Zap, Droplets } from 'lucide-react';
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { th } from "date-fns/locale";
@@ -30,6 +30,11 @@ const TenantDetail = () => {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<'idCard' | 'contract' | null>(null);
+  const [startElec, setStartElec] = useState<number | null>(null);
+  const [startWater, setStartWater] = useState<number | null>(null);
+  const [editStartElec, setEditStartElec] = useState<number | null>(null);
+  const [editStartWater, setEditStartWater] = useState<number | null>(null);
+
   const roomNumberFromState = location.state?.roomNumber;
 
   useEffect(() => {
@@ -47,9 +52,28 @@ const TenantDetail = () => {
         setLoading(false);
       }
     };
+    fetchTenantData();
+  }, [id]);
 
-    fetchTenantData(); 
-  }, [id]); 
+  // ดึงหน่วยมิเตอร์เริ่มต้น
+  useEffect(() => {
+    const fetchMeterReadings = async () => {
+      if (!id || !tenant?.roomId) return;
+      try {
+        const meterData = await BillingFrontendService.getLastReadings();
+        const roomReading = meterData.find(item => item.roomId === tenant.roomId);
+        if (roomReading) {
+          setStartElec(roomReading.lastElec);
+          setStartWater(roomReading.lastWater);
+          setEditStartElec(roomReading.lastElec);
+          setEditStartWater(roomReading.lastWater);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchMeterReadings();
+  }, [id, tenant?.roomId]);
 
   useEffect(() => {
     const fetchBillingHistory = async () => {
@@ -64,7 +88,6 @@ const TenantDetail = () => {
         setHistoryLoading(false);
       }
     };
-
     fetchBillingHistory();
   }, [id]);
 
@@ -76,15 +99,13 @@ const TenantDetail = () => {
     setDeleteDialogOpen(true);
   };
 
-  //Region Handle
+  // ── Handlers ──────────────────────────────────────────────────────────────────
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, fileType: 'idCard' | 'contract') => {
     const file = event.target.files?.[0];
     if (!file || !id) return;
-
     try {
       setUploading(fileType);
       const response = await TenantFrontendService.uploadFile(id, file, fileType);
-
       if (response.success) {
         const freshData = await TenantFrontendService.getTenantDetail(id);
         setTenant(freshData.data ?? null);
@@ -95,25 +116,29 @@ const TenantDetail = () => {
   };
 
   const handleEditClick = () => {
-    setEditForm({ ...tenant }); 
+    setEditForm({ ...tenant });
+    setEditStartElec(startElec);
+    setEditStartWater(startWater);
     setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditStartElec(startElec);
+    setEditStartWater(startWater);
   };
 
   const handleInputChange = <K extends keyof ITenant>(field: K, value: ITenant[K]) => {
     if (editForm) {
-      setEditForm({
-        ...editForm,
-        [field]: value,
-      });
+      setEditForm({ ...editForm, [field]: value });
     }
   };
 
   const handleConfirmDelete = async () => {
     if (!fileToDelete || !id) return;
-
     try {
-      setDeleteDialogOpen(false); 
-      setUploading(fileToDelete); 
+      setDeleteDialogOpen(false);
+      setUploading(fileToDelete);
       const response = await TenantFrontendService.deleteFile(id, fileToDelete);
       if (response.success) {
         const freshData = await TenantFrontendService.getTenantDetail(id);
@@ -126,10 +151,7 @@ const TenantDetail = () => {
   };
 
   const handleViewFile = (url: string | null | undefined) => {
-    if (!url) {
-      alert("ไม่พบไฟล์เอกสาร");
-      return;
-    }
+    if (!url) { alert("ไม่พบไฟล์เอกสาร"); return; }
     const formatPath = url.startsWith('/') ? url : `/${url}`;
     const fullUrl = `${API_BASE_URL}${formatPath}`;
     window.open(fullUrl, '_blank');
@@ -137,15 +159,29 @@ const TenantDetail = () => {
 
   const handleSave = async () => {
     if (!editForm || !id) return;
-
     try {
       setLoading(true);
       const response = await TenantFrontendService.updateTenant(id, editForm);
-
       if (response.success) {
+        // อัปเดตมิเตอร์เริ่มต้น ถ้ามีการเปลี่ยนแปลง
+        if (editStartElec !== startElec || editStartWater !== startWater) {
+          try {
+            await BillingFrontendService.updateMeterReading({
+              roomId: tenant.roomId,
+              elecReading: editStartElec ?? 0,
+              waterReading: editStartWater ?? 0,
+              readingDate: editForm.moveInDate ?? new Date().toISOString().split('T')[0],
+              isInitial: true,
+            });
+            setStartElec(editStartElec);
+            setStartWater(editStartWater);
+          } catch (meterErr) {
+            console.error('Update meter error:', meterErr);
+          }
+        }
         const freshData = await TenantFrontendService.getTenantDetail(id);
         if (freshData.success && freshData.data) {
-          setTenant(freshData.data); 
+          setTenant(freshData.data);
         }
         setIsEditing(false);
       }
@@ -155,7 +191,6 @@ const TenantDetail = () => {
       setLoading(false);
     }
   };
-  //Endregion
 
   const renderTableContent = () => {
     if (historyLoading) {
@@ -165,7 +200,6 @@ const TenantDetail = () => {
         </TableRow>
       );
     }
-
     if (usageHistory.length === 0) {
       return (
         <TableRow>
@@ -173,38 +207,21 @@ const TenantDetail = () => {
         </TableRow>
       );
     }
-
     return usageHistory.map((row) => (
       <TableRow key={row.id} sx={{ '&:hover': { bgcolor: '#fcfcfd' } }}>
         <TableCell sx={{ fontWeight: 600 }}>{row.month}</TableCell>
         <TableCell align="center">
-          <Typography component="span" sx={{ 
-            color: '#3b82f6', 
-            fontWeight: 700,
-            fontSize: '0.875rem'
-          }}>
+          <Typography component="span" sx={{ color: '#3b82f6', fontWeight: 700, fontSize: '0.875rem' }}>
             {Math.max(0, row.waterUnitCurr - row.waterUnitPrev)}
           </Typography>
         </TableCell>
-        
-        <TableCell align="center" >
-          {row.waterRate} 
-        </TableCell>
-
+        <TableCell align="center">{row.waterRate}</TableCell>
         <TableCell align="center">
-          <Typography component="span" sx={{ 
-            color: '#d97706', 
-            fontWeight: 700,
-            fontSize: '0.875rem'
-          }}>
+          <Typography component="span" sx={{ color: '#d97706', fontWeight: 700, fontSize: '0.875rem' }}>
             {Math.max(0, row.elecUnitCurr - row.elecUnitPrev)}
           </Typography>
         </TableCell>
-        
-        <TableCell align="center">
-          {row.elecRate} 
-        </TableCell>
-        
+        <TableCell align="center">{row.elecRate}</TableCell>
         <TableCell align="right" sx={{ fontWeight: 700, color: '#1e293b' }}>
           {row.totalAmount.toLocaleString()} ฿
         </TableCell>
@@ -212,7 +229,7 @@ const TenantDetail = () => {
     ));
   };
 
-return (
+  return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: '#f1f5f9', minHeight: '100vh' }}>
       <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
         <Stack direction="row" spacing={2} alignItems="center">
@@ -223,7 +240,7 @@ return (
         </Stack>
         {isEditing ? (
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" onClick={() => setIsEditing(false)} sx={{ borderRadius: 2 }}>ยกเลิก</Button>
+            <Button variant="outlined" onClick={handleCancelEdit} sx={{ borderRadius: 2 }}>ยกเลิก</Button>
             <Button variant="contained" onClick={handleSave} sx={{ bgcolor: '#0f172a', borderRadius: 2 }}>บันทึกข้อมูล</Button>
           </Stack>
         ) : (
@@ -232,10 +249,11 @@ return (
       </Stack>
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
+        {/* Left Panel */}
         <Box sx={{ flex: { lg: '0 0 360px' }, width: '100%' }}>
           <Paper sx={{ p: 4, borderRadius: 6, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <Avatar  sx={{  width: 100, height: 100, mx: 'auto', mb: 2, bgcolor: '#eff6ff', color: '#3b82f6', fontSize: '2.5rem', fontWeight: 800, border: '4px solid #fff', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}>
+              <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 2, bgcolor: '#eff6ff', color: '#3b82f6', fontSize: '2.5rem', fontWeight: 800, border: '4px solid #fff', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
                 {tenant.name.charAt(0)}
               </Avatar>
               <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e293b' }}>{tenant.name}</Typography>
@@ -256,9 +274,11 @@ return (
           </Paper>
         </Box>
 
+        {/* Right Content */}
         <Box sx={{ flex: 1, width: '100%' }}>
           <Stack spacing={4}>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+              {/* ข้อมูลส่วนตัว */}
               <DetailCard title="ข้อมูลส่วนตัว" icon={User}>
                 <DetailItem label="ชื่อ-นามสกุล :" value={isEditing ? editForm?.name : tenant.name} isEditing={isEditing} onChange={(val) => handleInputChange('name', val)} />
                 <DetailItem label="ชื่อเล่น :" value={isEditing ? editForm?.nickname : tenant.nickname} isEditing={isEditing} onChange={(val) => handleInputChange('nickname', val)} />
@@ -266,49 +286,109 @@ return (
                 <DetailItem label="เบอร์โทรศัพท์ :" value={isEditing ? editForm?.phone : tenant.phone} isEditing={isEditing} onChange={(val) => handleInputChange('phone', val)} />
                 <DetailItem label="ที่อยู่ :" value={isEditing ? editForm?.address : tenant.address} isEditing={isEditing} onChange={(val) => handleInputChange('address', val)} />
               </DetailCard>
+
+              {/* ข้อมูลสัญญาเช่า */}
               <DetailCard title="ข้อมูลสัญญาเช่า" icon={FileText}>
-                <DetailItem 
-                  label="วันที่ทำสัญญา :" 
-                  value={isEditing ? editForm?.contractDate : tenant.contractDate} // ส่งค่าตรงๆ ไม่ต้อง format
-                  isEditing={isEditing} 
-                  type="date" 
-                  onChange={(val) => handleInputChange('contractDate', val)} 
-                />
-                <DetailItem 
-                  label="วันที่เริ่มเข้าพัก :" 
-                  value={isEditing ? editForm?.moveInDate : tenant.moveInDate} // ส่งค่าตรงๆ
-                  isEditing={isEditing} 
-                  type="date" 
-                  onChange={(val) => handleInputChange('moveInDate', val)} 
-                />
-                <DetailItem 
-                  label="วันที่สิ้นสุดสัญญา :" 
-                  value={isEditing ? editForm?.contractEndDate : tenant.contractEndDate} // ส่งค่าตรงๆ
-                  isEditing={isEditing} 
-                  type="date" 
-                  onChange={(val) => handleInputChange('contractEndDate', val)} 
-                />
+                <DetailItem label="วันที่ทำสัญญา :" value={isEditing ? editForm?.contractDate : tenant.contractDate} isEditing={isEditing} type="date" onChange={(val) => handleInputChange('contractDate', val)} />
+                <DetailItem label="วันที่เริ่มเข้าพัก :" value={isEditing ? editForm?.moveInDate : tenant.moveInDate} isEditing={isEditing} type="date" onChange={(val) => handleInputChange('moveInDate', val)} />
+                <DetailItem label="วันที่สิ้นสุดสัญญา :" value={isEditing ? editForm?.contractEndDate : tenant.contractEndDate} isEditing={isEditing} type="date" onChange={(val) => handleInputChange('contractEndDate', val)} />
                 <DetailItem label="ระยะสัญญา (เดือน) :" value={isEditing ? editForm?.contractTerm : tenant.contractTerm} isEditing={isEditing} type="number" onChange={(val) => handleInputChange('contractTerm', Number(val))} />
                 <DetailItem label="เงินประกัน (฿) :" value={isEditing ? editForm?.deposit : tenant.deposit} isEditing={isEditing} type="number" highlight onChange={(val) => handleInputChange('deposit', Number(val))} />
                 <DetailItem label="Line ID :" value={isEditing ? editForm?.lineId : tenant.lineId} isEditing={isEditing} onChange={(val) => handleInputChange('lineId', val)} />
+
+                {/* ── มิเตอร์เริ่มต้น ── */}
+                <Divider sx={{ borderStyle: 'dashed', my: 0.5 }} />
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    มิเตอร์เริ่มต้น ณ วันเข้าพัก
+                  </Typography>
+                  <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+                    {/* หน่วยไฟ */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ minWidth: 140, flexShrink: 0 }}>
+                        <Typography variant="body2" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Zap size={13} color="#ed6c02" /> หน่วยไฟฟ้า :
+                        </Typography>
+                      </Box>
+                      {isEditing ? (
+                        <TextField
+                          size="small" type="number" fullWidth
+                          value={editStartElec ?? ''}
+                          onChange={(e) => setEditStartElec(e.target.value === '' ? null : Number(e.target.value))}
+                          slotProps={{
+                            input: { endAdornment: <InputAdornment position="end">หน่วย</InputAdornment> }
+                          }}
+                          sx={{
+                            flex: 1,
+                            '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fffbf5', fontSize: '0.875rem', '& fieldset': { borderColor: '#fed7aa' } }
+                          }}
+                        />
+                      ) : (
+                        <TextField
+                          size="small" fullWidth
+                          value={startElec !== null ? `${startElec} หน่วย` : '-'}
+                          slotProps={{ input: { readOnly: true } }}
+                          sx={{
+                            flex: 1,
+                            '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fffbf5', fontSize: '0.875rem', fontWeight: 600, '& fieldset': { borderColor: '#fed7aa' }, '& .MuiInputBase-input.Mui-readOnly': { WebkitTextFillColor: '#c2410c' } }
+                          }}
+                        />
+                      )}
+                    </Box>
+
+                    {/* หน่วยน้ำ */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ minWidth: 140, flexShrink: 0 }}>
+                        <Typography variant="body2" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Droplets size={13} color="#0288d1" /> หน่วยน้ำประปา :
+                        </Typography>
+                      </Box>
+                      {isEditing ? (
+                        <TextField
+                          size="small" type="number" fullWidth
+                          value={editStartWater ?? ''}
+                          onChange={(e) => setEditStartWater(e.target.value === '' ? null : Number(e.target.value))}
+                          slotProps={{
+                            input: { endAdornment: <InputAdornment position="end">หน่วย</InputAdornment> }
+                          }}
+                          sx={{
+                            flex: 1,
+                            '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#f0f9ff', fontSize: '0.875rem', '& fieldset': { borderColor: '#bae6fd' } }
+                          }}
+                        />
+                      ) : (
+                        <TextField
+                          size="small" fullWidth
+                          value={startWater !== null ? `${startWater} หน่วย` : '-'}
+                          slotProps={{ input: { readOnly: true } }}
+                          sx={{
+                            flex: 1,
+                            '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#f0f9ff', fontSize: '0.875rem', fontWeight: 600, '& fieldset': { borderColor: '#bae6fd' }, '& .MuiInputBase-input.Mui-readOnly': { WebkitTextFillColor: '#0369a1' } }
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Stack>
+                </Box>
               </DetailCard>
             </Box>
 
+            {/* เอกสารแนบ */}
             <input type="file" id="upload-id-card" hidden accept="image/*" onChange={(e) => handleFileChange(e, 'idCard')} />
             <input type="file" id="upload-contract" hidden accept="application/pdf" onChange={(e) => handleFileChange(e, 'contract')} />
-            
+
             <DetailCard title="เอกสารแนบ" icon={File}>
               <Stack spacing={2}>
-                <DocumentItem 
-                  label="สำเนาบัตรประชาชน" icon={ImageIcon} 
+                <DocumentItem
+                  label="สำเนาบัตรประชาชน" icon={ImageIcon}
                   onDelete={() => openDeleteConfirm('idCard')}
                   onView={() => handleViewFile(tenant.idCardUrl)}
-                  onEdit={() => document.getElementById('upload-id-card')?.click()} 
+                  onEdit={() => document.getElementById('upload-id-card')?.click()}
                   hasFile={!!tenant.idCardUrl} isLoading={uploading === 'idCard'}
                 />
                 <Divider sx={{ borderStyle: 'dashed' }} />
-                <DocumentItem 
-                  label="ไฟล์สัญญาเช่า (PDF)" icon={FileText} 
+                <DocumentItem
+                  label="ไฟล์สัญญาเช่า (PDF)" icon={FileText}
                   onView={() => handleViewFile(tenant.contractFileUrl)}
                   onEdit={() => document.getElementById('upload-contract')?.click()}
                   hasFile={!!tenant.contractFileUrl} isLoading={uploading === 'contract'}
@@ -317,6 +397,7 @@ return (
               </Stack>
             </DetailCard>
 
+            {/* ประวัติบิล */}
             <Paper sx={{ p: 4, borderRadius: 6, border: '1px solid #e2e8f0' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -336,58 +417,37 @@ return (
                       <TableCell align="right" sx={{ fontWeight: 700 }}>ยอดรวม</TableCell>
                     </TableRow>
                   </TableHead>
-                  <TableBody>
-                    {renderTableContent()}
-                  </TableBody>
+                  <TableBody>{renderTableContent()}</TableBody>
                 </Table>
               </TableContainer>
             </Paper>
           </Stack>
         </Box>
       </Box>
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}
-        slotProps={{
-          paper: {
-            sx: { borderRadius: 4, p: 1 }
-          }
-        }}
-      >
-      <DialogTitle sx={{ fontWeight: 700, color: '#1e293b' }}>
-        ยืนยันการลบไฟล์
-      </DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          คุณแน่ใจหรือไม่ว่าต้องการลบ {fileToDelete === 'idCard' ? 'สำเนาบัตรประชาชน' : 'ไฟล์สัญญาเช่า'}? 
-          การดำเนินการนี้ไม่สามารถย้อนกลับได้
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button 
-          onClick={() => setDeleteDialogOpen(false)} 
-          variant="outlined" 
-          sx={{ borderRadius: 2, color: '#64748b', borderColor: '#e2e8f0' }}
-        >
-          ยกเลิก
-        </Button>
-        <Button 
-          onClick={handleConfirmDelete} 
-          variant="contained" 
-          color="error" 
-          autoFocus
-          sx={{ borderRadius: 2, bgcolor: '#ef4444', fontWeight: 600 }}
-        >
-          ยืนยันการลบ
-        </Button>
-      </DialogActions>
-    </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} slotProps={{ paper: { sx: { borderRadius: 4, p: 1 } } }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#1e293b' }}>ยืนยันการลบไฟล์</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            คุณแน่ใจหรือไม่ว่าต้องการลบ {fileToDelete === 'idCard' ? 'สำเนาบัตรประชาชน' : 'ไฟล์สัญญาเช่า'}? การดำเนินการนี้ไม่สามารถย้อนกลับได้
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, color: '#64748b', borderColor: '#e2e8f0' }}>ยกเลิก</Button>
+          <Button onClick={handleConfirmDelete} variant="contained" color="error" autoFocus sx={{ borderRadius: 2, bgcolor: '#ef4444', fontWeight: 600 }}>ยืนยันการลบ</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
 
-const DetailCard = ({ title, icon: Icon,children }: { title: string, icon: ElementType, children: React.ReactNode }) => (
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+const DetailCard = ({ title, icon: Icon, children }: { title: string; icon: ElementType; children: React.ReactNode }) => (
   <Paper sx={{ p: 3, borderRadius: 5, border: '1px solid #e2e8f0', height: '100%' }}>
     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1.5, color: '#334155' }}>
-      <Icon size={20} /> 
+      <Icon size={20} />
       {title}
     </Typography>
     <Stack spacing={2}>{children}</Stack>
@@ -418,14 +478,10 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
 
   const renderValue = (): string => {
     if (!value || value === "-" || value === "") return "-";
-
     switch (type) {
-      case 'date':
-        return getThaiDateDisplay(value);
-      case 'number':
-        return Number(value).toLocaleString();
-      default:
-        return String(value);
+      case 'date': return getThaiDateDisplay(value);
+      case 'number': return Number(value).toLocaleString();
+      default: return String(value);
     }
   };
 
@@ -440,8 +496,7 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             selected={parseDate(value)}
             onChange={(date: Date | null) => {
               if (date) {
-                const formattedDate = format(date, 'yyyy-MM-dd');
-                onChange?.(formattedDate);
+                onChange?.(format(date, 'yyyy-MM-dd'));
                 setIsDatePickerOpen(false);
               }
             }}
@@ -451,66 +506,39 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
             popperClassName="custom-datepicker-popper"
             customInput={
               <TextField
-                size="small"
-                fullWidth
+                size="small" fullWidth
                 inputProps={{ readOnly: true }}
                 onClick={() => setIsDatePickerOpen(true)}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '8px',
-                    bgcolor: '#fff',
-                  }
-                }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fff' } }}
               />
             }
           />
         </Box>
       );
     }
-
     return (
       <TextField
-        size="small"
-        type={type}
-        fullWidth
-        value={(value === "-" ? "" : value) || ''} 
+        size="small" type={type} fullWidth
+        value={(value === "-" ? "" : value) || ''}
         onChange={(e) => onChange?.(e.target.value)}
         multiline={label.includes("ที่อยู่")}
         rows={label.includes("ที่อยู่") ? 3 : 1}
         sx={{
           flex: 1,
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-            bgcolor: '#fff',
-            fontSize: '0.875rem',
-            '& fieldset': { borderColor: '#e2e8f0' }
-          }
+          '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: '#fff', fontSize: '0.875rem', '& fieldset': { borderColor: '#e2e8f0' } }
         }}
       />
     );
   };
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'row', 
-      alignItems: label.includes("ที่อยู่") ? 'flex-start' : 'center', 
-      minHeight: 48, 
-      gap: 2,
-      py: 0.5 
-    }}>
+    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: label.includes("ที่อยู่") ? 'flex-start' : 'center', minHeight: 48, gap: 2, py: 0.5 }}>
       <Box sx={{ minWidth: 140, flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ color: '#64748b' }}>
-          {label}
-        </Typography>
+        <Typography variant="body2" sx={{ color: '#64748b' }}>{label}</Typography>
       </Box>
-
-      {isEditing ? (
-        renderEditInput()
-      ) : (
+      {isEditing ? renderEditInput() : (
         <TextField
-          size="small"
-          fullWidth
+          size="small" fullWidth
           multiline={label.includes("ที่อยู่")}
           rows={label.includes("ที่อยู่") ? 3 : 1}
           value={renderValue()}
@@ -518,15 +546,9 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
           sx={{
             flex: 1,
             '& .MuiOutlinedInput-root': {
-              borderRadius: '8px',
-              bgcolor: '#f8fafc',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#1e293b',
+              borderRadius: '8px', bgcolor: '#f8fafc', fontSize: '0.875rem', fontWeight: 600, color: '#1e293b',
               '& fieldset': { borderColor: '#e2e8f0' },
-              '& .MuiInputBase-input.Mui-readOnly': {
-                WebkitTextFillColor: '#1e293b', 
-              }
+              '& .MuiInputBase-input.Mui-readOnly': { WebkitTextFillColor: '#1e293b' }
             }
           }}
         />
@@ -534,7 +556,6 @@ const DetailItem = ({ label, value, isEditing, type = 'text', onChange }: Detail
     </Box>
   );
 };
-
 
 const LoadingSkeleton = () => (
   <Box sx={{ p: 4, bgcolor: '#f8fafc', minHeight: '100vh' }}>
@@ -546,7 +567,7 @@ const LoadingSkeleton = () => (
   </Box>
 );
 
-const ErrorState = ({ message, onBack }: { message: string | null, onBack: () => void }) => (
+const ErrorState = ({ message, onBack }: { message: string | null; onBack: () => void }) => (
   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', gap: 2 }}>
     <Typography variant="h6" color="error">{message || 'เกิดข้อผิดพลาด'}</Typography>
     <Button variant="contained" onClick={onBack}>ย้อนกลับ</Button>
@@ -555,29 +576,24 @@ const ErrorState = ({ message, onBack }: { message: string | null, onBack: () =>
 
 const DocumentItem = ({ label, icon: Icon, onView, onEdit, onDelete, hasFile, isLoading }: DocumentItemProps) => {
   let bgColor = '#fff1f2';
-  if (isLoading) {bgColor = '#f1f5f9'} 
-  else if (hasFile) { bgColor = '#f8fafc' }
+  if (isLoading) { bgColor = '#f1f5f9'; }
+  else if (hasFile) { bgColor = '#f8fafc'; }
 
   let statusText = 'ยังไม่ได้อัปโหลด';
-  if (isLoading) { statusText = 'กำลังประมวลผล...' } 
-  else if (hasFile) { statusText = 'พร้อมใช้งาน' }
+  if (isLoading) { statusText = 'กำลังประมวลผล...'; }
+  else if (hasFile) { statusText = 'พร้อมใช้งาน'; }
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 3, bgcolor: bgColor, border: `1px solid ${hasFile ? '#e2e8f0' : '#fecaca'}`}}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 3, bgcolor: bgColor, border: `1px solid ${hasFile ? '#e2e8f0' : '#fecaca'}` }}>
       <Stack direction="row" spacing={1.5} alignItems="center">
         <Box sx={{ p: 1, borderRadius: 2, bgcolor: hasFile ? '#eff6ff' : '#fff', color: hasFile ? '#3b82f6' : '#ef4444', display: 'flex' }}>
           <Icon size={18} />
         </Box>
         <Box>
-          <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
-            {label}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {statusText} 
-          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>{label}</Typography>
+          <Typography variant="caption" color="text.secondary">{statusText}</Typography>
         </Box>
       </Stack>
-      
       <Stack direction="row" spacing={3}>
         {hasFile && !isLoading && (
           <>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Paper, TextField, InputAdornment, IconButton, Breadcrumbs, Link, Button, CircularProgress, Divider } from '@mui/material';
-import { ArrowLeft, BookUser, FileText, CheckCircle, Wallet } from 'lucide-react';
+import { ArrowLeft, BookUser, FileText, CheckCircle, Wallet, Zap, Droplets } from 'lucide-react';
 import { ThaiBaht } from 'thai-baht-text-ts';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -13,194 +13,139 @@ import { BillingFrontendService } from '../../../../services/billingService';
 import type { ContractTemplateProps, ICreateContractRequest } from '../../../../type/tenant';
 import { TenantFrontendService } from '../../../../services/tenantService';
 
-  const ContractTemplate = ({ data, roomNumber, price,floor }: ContractTemplateProps) => {
-
-    const formatThaiDate = (dateString: string | null | undefined) => {
+const ContractTemplate = ({ data, roomNumber, price, floor }: ContractTemplateProps) => {
+  const formatThaiDate = (dateString: string | null | undefined) => {
     if (!dateString) return '................................................';
-    
     const months = [
       'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
       'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
     ];
-    
     const date = new Date(dateString);
     const day = date.getDate();
     const month = months[date.getMonth()];
     const year = date.getFullYear() + 543;
-    
     return `${day} ${month} พ.ศ.${year}`;
   };
-  
-    const depositValue = data.deposit ?? 0;
-    const display = (value: string | number | null | undefined) => value || '................................................';
 
-    return (
-      <Box className="print-section" 
-        sx={{ 
-          display: 'none', 
-            '@media print': {
-              '.no-print': { display: 'none !important' },
-              'header, nav, button, .MuiBreadcrumbs-root': { display: 'none !important' },
-                '& .MuiPaper-root': {
-              boxShadow: 'none !important',
-              border: 'none !important',
-            },
-            '@page': {
-              size: 'A4',
-              margin: '2cm', 
-            },
-            position: 'relative',
-            width: '100%',
-            color: '#000',
-            fontSize: '16px', 
-            fontFamily: "'Sarabun', sans-serif",
-            lineHeight: 1.2,
-            
-            '& p': { 
-              mb: 1, 
-              textAlign: 'justify',
-              orphans: 3, 
-              widows: 3 
-            }
-            
-          } 
-        }}
-      >
-    {/* --- หน้าที่ 1 --- */}
-    <Box sx={{ pageBreakAfter: 'always' }}>
-      <Typography variant="h6" align="center" sx={{ mb: 1, fontSize: '20px' }}>
-        สัญญาเช่าห้องพักอาศัย
-      </Typography>
+  const depositValue = data.deposit ?? 0;
+  const display = (value: string | number | null | undefined) => value || '................................................';
 
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'flex-end', 
-        mb: 2 
-      }}>
-        <Typography sx={{ fontSize: '16px' }}>ทำขึ้นที่ บ้านจตุพร</Typography>
-        <Typography sx={{ fontSize: '16px' }}>วันที่ {formatThaiDate(data.contractDate)}</Typography>
-      </Box>
-
-      <Typography sx={{textIndent: '40px' }}>
-        สัญญาฉบับนี้ทำขึ้น ระหว่าง นายมานิตย์ รัตนวงศ์ อยู่บ้านเลขที่ 246/3 หมู่ที่ 1 ตำบล/แขวง บ้านเลื่อม อำเภอ/เขต เมืองอุดรธานี จังหวัด อุดรธานี ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้ให้เช่า"</strong> ฝ่ายหนึ่ง กับ {display(data.name)} อยู่บ้านเลขที่ {display(data.address)} ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้เช่า"</strong> อีกฝ่ายหนึ่ง 
-      </Typography>
-
-      <Typography sx={{textIndent: '40px' }}>
-        คู่สัญญาทั้งสองฝ่ายตกลงทำสัญญาเช่ากันโดยมีข้อความดังต่อไปนี้
-      </Typography>
-
-      <Typography sx={{textIndent: '40px' ,fontWeight: 700, mt: 1 }}>ข้อ 1 ทรัพย์ที่เช่า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ผู้เช่าตกลงเช่าและผู้ให้เช่าตกลงให้เช่าห้องพักอาศัยห้องเลขที่ {roomNumber} ชั้นที่ {floor} ชื่อ บ้านจตุพร ซึ่งตั้งอยู่บ้านเลขที่ 246/3 ตำบล/แขวง บ้านเลื่อม อำเภอ/เขต เมืองอุดรธานี จังหวัด อุดรธานี
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px' ,fontWeight: 700, mt: 1 }}>ข้อ 2 วัตถุประสงค์ของการเช่า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ผู้เช่าตกลงเช่าทรัพย์ตามข้อ 1 เพื่อวัตถุประสงค์ในการพักอาศัยเท่านั้น
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px' ,fontWeight: 700, mt: 1 }}>ข้อ 3 อัตราค่าเช่าและระยะเวลาการเช่า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        คู่สัญญาตกลงเช่าทรัพย์ตามข้อ 1 นับตั้งแต่วันที่ {formatThaiDate(data.moveInDate)} ถึงวันที่ {formatThaiDate(data.contractEndDate)} เป็นระยะเวลา
-        {display(data.contractTerm)} โดยจะชำระค่าเช่าล่วงหน้าเป็นรายเดือน ในอัตราค่าเช่าเดือนละ {price.toLocaleString()} บาท ({ThaiBaht(price)})
-        ค่าเช่านี้ไม่รวมถึงค่าไฟฟ้า ค่าน้ำประปา โดยค่าเช่าเดือนแรก ผู้เช่าได้ชำระให้แก่ผู้ให้เช่าในวันทำสัญญานี้ ซึ่งผู้ให้เช่าได้รับเงินดังกล่าวไว้เรียบร้อยแล้ว 
-        สำหรับค่าเช่าในเดือนต่อๆ ไป ผู้เช่าตกลงชำระให้แก่ผู้ให้เช่าภายในวันที่ 5 ของทุกเดือน ณ บ้านจตุพร
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px' ,fontWeight: 700, mt: 1 }}>ข้อ 4 เงินประกันการเช่า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ในวันทำสัญญานี้ ผู้เช่าได้วางเงินประกันจำนวน {depositValue.toLocaleString()} บาท ({ThaiBaht(depositValue)}) ให้แก่ผู้ให้เช่า
-        เงินประกันดังกล่าวมื่อสัญญาสิ้นสุดลงไม่ว่ากรณีใดๆ หากผู้เช่าไม่ได้ติดค้างชำระค่าเช่า หรือก่อความเสียหายใดๆ ให้แก่ผู้ให้เช่า 
-        ผู้ให้เช่าคืนเงินจำนวนดังกล่าวให้แก่ผู้เช่า แต่หากผู้เช่ายังค้างชำระค่าเช่าหรือก่อความเสียหายใดๆ ให้แก่ผู้ให้เช่า ผู้เช่ายินยอมให้ผู้ให้เช่านำค่าเช่าที่ค้างชำระหรือค่าเสียหายมาหักจากเงินประกัน
-        ดังกล่าวได้ และหากเงินดังกล่าวไม่พอ ผู้เช่ายังจะต้องรับผิดชดใช้แก่ผู้ให้เช่าคนครบ
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px' ,fontWeight: 700, mt: 1 }}>ข้อ 5 ระเบียบหอพัก</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ผู้เช่าจะต้องปฏิบัติตามระเบียบหอพักที่ผู้ให้เช่าได้กำหนดไว้ หรือจะได้กำหนดไว้เป็นคราวๆ เพื่อความเรียบร้อยและปลอดภัยของผู้เช่าทุกคน
-        และให้ถือว่าระเบียบดังกล่าวเป็นส่วนหนึ่งของสัญญาเช่านี้ด้วย
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px' ,fontWeight: 700, mt: 1 }}>ข้อ 6 ค่าน้ำประปา ค่ากระแสไฟฟ้า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ผู้เช่าจะต้องชำระค่าน้ำประปาและค่ากระแสไฟฟ้า ให้แก่ผู้ให้เช่าตามจำนวนที่ใช้ในแต่ละเดือนตามมาตรวัดที่ได้ติดตั้งไว้หน้าห้องของผู้เช่า
-        โดยมีอัตราดังนี้ (๑) ค่าไฟฟ้าหน่วยละ 8 บาท 
-                    (๒) ค่าน้ำประปาเหมาจ่าย 100.- บาท ต่อเดือน (จำกัด 4 หน่วยแรก) หากใช้เกินคิดหน่วยละ 25 บาท
-      </Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ค่าน้ำประปาและค่ากระแสไฟฟ้านี้ ผู้ให้เช่าจะแจ้งให้ผู้เช่าทราบภายในวันที่ 30 ของทุกเดือน และให้ผู้เช่าชำระเงินดังกล่าวพร้อมกับชำระเงินค่าเช่าล่วงหน้าในแต่ละเดือน อนึ่งอัตราค่าน้ำประปาและค่ากระแสไฟฟ้านี้อาจขึ้นลงได้ตามส่วน การขึ้นลงขึ้นลงของอัตราค่าน้ำประปาของการประปาส่วนภูมิภาค และค่ากระแสไฟฟ้าของการไฟฟ้าส่วนภูมิภาค
-      </Typography>
-      <Typography sx={{textIndent: '40px', fontWeight: 700 }}>ข้อ 7 การพักอาศัย</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        การเช่าห้องพักตามข้อ 1 ก็เพื่อวัตถุประสงค์เฉพาะให้ผู้เช่าพักอาศัยเท่านั้น ผู้เช่าจะนำบุคคลอื่นเข้ามาพักอาศัยไม่ได้ เว้นแต่จะได้รับความยินยอมจากผู้ดูแลหอพักก่อน
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 8 การทำครัว ปรุงอาหาร</Typography>
-      <Typography sx={{textIndent: '40px' }}>ห้ามมิให้ผู้เช่าทำครัว หรือปรุงอาหารในห้องพัก</Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 9 สิ่งอำนวยความสะดวกในหอพัก</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        สิ่งอำนวยความสะดวกต่างๆ ในหอพัก เช่น เครื่องปรับอากาศ พัดลม เครื่องทำน้ำอุ่น เคเบิ้ลทีวี ไมโครเวฟ  ฯลฯ ซึ่งผู้ให้เช่าจัดบริการไว้ให้ผู้เช่าจะต้องใช้ด้วยความระมัดระวังเยี่ยงวิญญูชน จะพึงใช้ทรัพย์ของตน หากผู้เช่าทำให้ทรัพย์สินเสียหายไม่ว่าจะโดยจงใจหรือประมาทเลินเล่อก็ตาม ผู้เช่าจะต้องรับผิดในความเสียหายนั้นจนเต็มจำนวน
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 10 การปฏิบัติตัวของผู้เช่า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ผู้เช่าต้องปฏิบัติตนให้อยู่ในฐานะผู้เช่าที่ดี หากผู้เช่าได้กระทำการใด ๆ อันก่อให้เกิดความเสียหายต่อผู้เช่าคนอื่น หรือต่อผู้ให้เช่า หรือในกรณีที่ผู้เช่าคนอื่นหรือผู้ให้เช่าไม่สามารถอยู่ร่วมกับผู้เช่าได้โดยปกติสุข ผู้ให้เช่ามีสิทธิบอกเลิกสัญญาเช่าได้ทันที และผู้เช่าต้องชำระค่าเสียหายที่เกิดขึ้นทั้งหมด โดยสละสิทธิเรียกร้องใด ๆ จากผู้ให้เช่า
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 11 การละทิ้งห้องพัก</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ในกรณีที่ผู้เช่าจะไม่อยู่ห้องพักเป็นเวลาเกินกว่า 7 วัน ผู้เช่าต้องมีหนังสือแจ้งให้ผู้ดูแลหอพักทราบล่วงหน้าไม่น้อยกว่า 7 วัน
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 12 การตรวจตราทรัพย์ที่เช่า</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ผู้เช่ายินยอมให้ผู้ให้เช่า หรือตัวแทนของผู้ให้เช่าตรวจตราห้องพักได้ตลอดเวลา
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 13 การเลิกสัญญาก่อนครบกำหนด</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        <strong>ในกรณีที่ผู้เช่าประสงค์จะเลิกสัญญาเช่าก่อนครบกำหนดระยะเวลาการเช่าตามข้อ 3 ผู้เช่าจะต้องมีคำบอกกล่าวเป็นหนังสือหรือแจ้งด้วยวาจาไปยังผู้ให้เช่าทราบไม่น้อยกว่า 1 เดือน</strong> และผู้เช่าตกลงที่จะจ่ายค่าตอบแทนให้แก่ผู้ให้เช่าเป็นจำนวนเงิน 2,000.- บาท (สองพันบาทถ้วน) เพื่อเป็นค่าตอบแทนในการที่ผู้ให้เช่าเลิกสัญญาก่อนครบกำหนด
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700 }}>ข้อ 14 การผิดสัญญา</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        ในกรณีที่ผู้เช่าผิดสัญญาเช่าไม่ว่าข้อหนึ่งข้อใดหรือหลายข้อรวมกัน ผู้ให้เช่ามีสิทธิที่จะบอกกล่าวให้ผู้เช่าปฏิบัติให้ถูกต้องตามสัญญา หรือเรียกค่าเสียหาย หรือเลิกสัญญาโดยให้สัญญาสิ้นสุดลงโดยมิต้องบอกกล่าวก่อน หรือจะใช้สิทธิดังกล่าวร่วมกันก็ได้
-      </Typography>
-
-      <Typography sx={{ textIndent: '40px',fontWeight: 700, mt: 1 }}>ข้อ 15 กรณีเลิกสัญญา</Typography>
-      <Typography sx={{textIndent: '40px' }}>
-        เมื่อสัญญาสิ้นสุดลงไม่ว่าจะด้วยเหตุครบกำหนดระยะเวลาการเช่า หรือด้วยเหตุประการหนึ่งประการใดก็ตาม ผู้เช่ายินยอมให้ผู้ให้เช่ามีสิทธิที่จะกลับเข้าครอบครองทรัพย์ที่เช่าได้ทันที และขนย้ายทรัพย์สินของผู้เช่าออกจากทรัพย์ที่เช่า โดยผู้เช่าจะต้องเป็นผู้ออกค่าใช้จ่ายในการขนย้ายทรัพย์สินและเก็บรักษาทรัพย์สินนั้น
-      </Typography>
-
-      <Typography sx={{ textIndent: '50px', mt: 3, mb: 4 }}>
-        สัญญานี้ทำขึ้นเป็น 2 ฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความในสัญญานี้โดยตลอดแล้ว เห็นว่าถูกต้อง จึงได้ลงลายมือชื่อไว้เป็นสำคัญต่อหน้าพยาน
-      </Typography>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 6 }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................ผู้เช่า</Typography>
-          <Typography>( {display(data.name)} )</Typography>
+  return (
+    <Box className="print-section"
+      sx={{
+        display: 'none',
+        '@media print': {
+          '.no-print': { display: 'none !important' },
+          'header, nav, button, .MuiBreadcrumbs-root': { display: 'none !important' },
+          '& .MuiPaper-root': { boxShadow: 'none !important', border: 'none !important' },
+          '@page': { size: 'A4', margin: '2cm' },
+          position: 'relative',
+          width: '100%',
+          color: '#000',
+          fontSize: '16px',
+          fontFamily: "'Sarabun', sans-serif",
+          lineHeight: 1.2,
+          '& p': { mb: 1, textAlign: 'justify', orphans: 3, widows: 3 }
+        }
+      }}
+    >
+      <Box sx={{ pageBreakAfter: 'always' }}>
+        <Typography variant="h6" align="center" sx={{ mb: 1, fontSize: '20px' }}>สัญญาเช่าห้องพักอาศัย</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mb: 2 }}>
+          <Typography sx={{ fontSize: '16px' }}>ทำขึ้นที่ บ้านจตุพร</Typography>
+          <Typography sx={{ fontSize: '16px' }}>วันที่ {formatThaiDate(data.contractDate)}</Typography>
         </Box>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................ผู้ให้เช่า</Typography>
-          <Typography>( นายมานิตย์ รัตนวงศ์ )</Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................พยาน</Typography>
-          <Typography>(...........................................)</Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................พยาน</Typography>
-          <Typography>(...........................................)</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          สัญญาฉบับนี้ทำขึ้น ระหว่าง นายมานิตย์ รัตนวงศ์ อยู่บ้านเลขที่ 246/3 หมู่ที่ 1 ตำบล/แขวง บ้านเลื่อม อำเภอ/เขต เมืองอุดรธานี จังหวัด อุดรธานี ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้ให้เช่า"</strong> ฝ่ายหนึ่ง กับ {display(data.name)} อยู่บ้านเลขที่ {display(data.address)} ซึ่งต่อไปในสัญญานี้จะเรียกว่า <strong>"ผู้เช่า"</strong> อีกฝ่ายหนึ่ง
+        </Typography>
+        <Typography sx={{ textIndent: '40px' }}>คู่สัญญาทั้งสองฝ่ายตกลงทำสัญญาเช่ากันโดยมีข้อความดังต่อไปนี้</Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 1 ทรัพย์ที่เช่า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ผู้เช่าตกลงเช่าและผู้ให้เช่าตกลงให้เช่าห้องพักอาศัยห้องเลขที่ {roomNumber} ชั้นที่ {floor} ชื่อ บ้านจตุพร ซึ่งตั้งอยู่บ้านเลขที่ 246/3 ตำบล/แขวง บ้านเลื่อม อำเภอ/เขต เมืองอุดรธานี จังหวัด อุดรธานี
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 2 วัตถุประสงค์ของการเช่า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>ผู้เช่าตกลงเช่าทรัพย์ตามข้อ 1 เพื่อวัตถุประสงค์ในการพักอาศัยเท่านั้น</Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 3 อัตราค่าเช่าและระยะเวลาการเช่า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          คู่สัญญาตกลงเช่าทรัพย์ตามข้อ 1 นับตั้งแต่วันที่ {formatThaiDate(data.moveInDate)} ถึงวันที่ {formatThaiDate(data.contractEndDate)} เป็นระยะเวลา
+          {display(data.contractTerm)} โดยจะชำระค่าเช่าล่วงหน้าเป็นรายเดือน ในอัตราค่าเช่าเดือนละ {price.toLocaleString()} บาท ({ThaiBaht(price)})
+          ค่าเช่านี้ไม่รวมถึงค่าไฟฟ้า ค่าน้ำประปา โดยค่าเช่าเดือนแรก ผู้เช่าได้ชำระให้แก่ผู้ให้เช่าในวันทำสัญญานี้ ซึ่งผู้ให้เช่าได้รับเงินดังกล่าวไว้เรียบร้อยแล้ว
+          สำหรับค่าเช่าในเดือนต่อๆ ไป ผู้เช่าตกลงชำระให้แก่ผู้ให้เช่าภายในวันที่ 5 ของทุกเดือน ณ บ้านจตุพร
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 4 เงินประกันการเช่า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ในวันทำสัญญานี้ ผู้เช่าได้วางเงินประกันจำนวน {depositValue.toLocaleString()} บาท ({ThaiBaht(depositValue)}) ให้แก่ผู้ให้เช่า
+          เงินประกันดังกล่าวมื่อสัญญาสิ้นสุดลงไม่ว่ากรณีใดๆ หากผู้เช่าไม่ได้ติดค้างชำระค่าเช่า หรือก่อความเสียหายใดๆ ให้แก่ผู้ให้เช่า
+          ผู้ให้เช่าคืนเงินจำนวนดังกล่าวให้แก่ผู้เช่า แต่หากผู้เช่ายังค้างชำระค่าเช่าหรือก่อความเสียหายใดๆ ให้แก่ผู้ให้เช่า ผู้เช่ายินยอมให้ผู้ให้เช่านำค่าเช่าที่ค้างชำระหรือค่าเสียหายมาหักจากเงินประกัน
+          ดังกล่าวได้ และหากเงินดังกล่าวไม่พอ ผู้เช่ายังจะต้องรับผิดชดใช้แก่ผู้ให้เช่าคนครบ
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 5 ระเบียบหอพัก</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ผู้เช่าจะต้องปฏิบัติตามระเบียบหอพักที่ผู้ให้เช่าได้กำหนดไว้ หรือจะได้กำหนดไว้เป็นคราวๆ เพื่อความเรียบร้อยและปลอดภัยของผู้เช่าทุกคน
+          และให้ถือว่าระเบียบดังกล่าวเป็นส่วนหนึ่งของสัญญาเช่านี้ด้วย
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 6 ค่าน้ำประปา ค่ากระแสไฟฟ้า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ผู้เช่าจะต้องชำระค่าน้ำประปาและค่ากระแสไฟฟ้า ให้แก่ผู้ให้เช่าตามจำนวนที่ใช้ในแต่ละเดือนตามมาตรวัดที่ได้ติดตั้งไว้หน้าห้องของผู้เช่า
+          โดยมีอัตราดังนี้ (๑) ค่าไฟฟ้าหน่วยละ 8 บาท
+                      (๒) ค่าน้ำประปาเหมาจ่าย 100.- บาท ต่อเดือน (จำกัด 4 หน่วยแรก) หากใช้เกินคิดหน่วยละ 25 บาท
+        </Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ค่าน้ำประปาและค่ากระแสไฟฟ้านี้ ผู้ให้เช่าจะแจ้งให้ผู้เช่าทราบภายในวันที่ 30 ของทุกเดือน และให้ผู้เช่าชำระเงินดังกล่าวพร้อมกับชำระเงินค่าเช่าล่วงหน้าในแต่ละเดือน
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700 }}>ข้อ 7 การพักอาศัย</Typography>
+        <Typography sx={{ textIndent: '40px' }}>การเช่าห้องพักตามข้อ 1 ก็เพื่อวัตถุประสงค์เฉพาะให้ผู้เช่าพักอาศัยเท่านั้น ผู้เช่าจะนำบุคคลอื่นเข้ามาพักอาศัยไม่ได้ เว้นแต่จะได้รับความยินยอมจากผู้ดูแลหอพักก่อน</Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 8 การทำครัว ปรุงอาหาร</Typography>
+        <Typography sx={{ textIndent: '40px' }}>ห้ามมิให้ผู้เช่าทำครัว หรือปรุงอาหารในห้องพัก</Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 9 สิ่งอำนวยความสะดวกในหอพัก</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          สิ่งอำนวยความสะดวกต่างๆ ในหอพัก เช่น เครื่องปรับอากาศ พัดลม เครื่องทำน้ำอุ่น เคเบิ้ลทีวี ไมโครเวฟ ฯลฯ ซึ่งผู้ให้เช่าจัดบริการไว้ให้ผู้เช่าจะต้องใช้ด้วยความระมัดระวัง หากผู้เช่าทำให้ทรัพย์สินเสียหายไม่ว่าจะโดยจงใจหรือประมาทเลินเล่อก็ตาม ผู้เช่าจะต้องรับผิดในความเสียหายนั้นจนเต็มจำนวน
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 10 การปฏิบัติตัวของผู้เช่า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ผู้เช่าต้องปฏิบัติตนให้อยู่ในฐานะผู้เช่าที่ดี หากผู้เช่าได้กระทำการใด ๆ อันก่อให้เกิดความเสียหายต่อผู้เช่าคนอื่น หรือต่อผู้ให้เช่า ผู้ให้เช่ามีสิทธิบอกเลิกสัญญาเช่าได้ทันที
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 11 การละทิ้งห้องพัก</Typography>
+        <Typography sx={{ textIndent: '40px' }}>ในกรณีที่ผู้เช่าจะไม่อยู่ห้องพักเป็นเวลาเกินกว่า 7 วัน ผู้เช่าต้องมีหนังสือแจ้งให้ผู้ดูแลหอพักทราบล่วงหน้าไม่น้อยกว่า 7 วัน</Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 12 การตรวจตราทรัพย์ที่เช่า</Typography>
+        <Typography sx={{ textIndent: '40px' }}>ผู้เช่ายินยอมให้ผู้ให้เช่า หรือตัวแทนของผู้ให้เช่าตรวจตราห้องพักได้ตลอดเวลา</Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 13 การเลิกสัญญาก่อนครบกำหนด</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          <strong>ในกรณีที่ผู้เช่าประสงค์จะเลิกสัญญาเช่าก่อนครบกำหนดระยะเวลาการเช่าตามข้อ 3 ผู้เช่าจะต้องมีคำบอกกล่าวเป็นหนังสือหรือแจ้งด้วยวาจาไปยังผู้ให้เช่าทราบไม่น้อยกว่า 1 เดือน</strong> และผู้เช่าตกลงที่จะจ่ายค่าตอบแทนให้แก่ผู้ให้เช่าเป็นจำนวนเงิน 2,000.- บาท (สองพันบาทถ้วน)
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700 }}>ข้อ 14 การผิดสัญญา</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          ในกรณีที่ผู้เช่าผิดสัญญาเช่าไม่ว่าข้อหนึ่งข้อใดหรือหลายข้อรวมกัน ผู้ให้เช่ามีสิทธิที่จะบอกกล่าวให้ผู้เช่าปฏิบัติให้ถูกต้องตามสัญญา หรือเรียกค่าเสียหาย หรือเลิกสัญญาโดยให้สัญญาสิ้นสุดลงโดยมิต้องบอกกล่าวก่อน
+        </Typography>
+        <Typography sx={{ textIndent: '40px', fontWeight: 700, mt: 1 }}>ข้อ 15 กรณีเลิกสัญญา</Typography>
+        <Typography sx={{ textIndent: '40px' }}>
+          เมื่อสัญญาสิ้นสุดลงไม่ว่าจะด้วยเหตุครบกำหนดระยะเวลาการเช่า หรือด้วยเหตุประการหนึ่งประการใดก็ตาม ผู้เช่ายินยอมให้ผู้ให้เช่ามีสิทธิที่จะกลับเข้าครอบครองทรัพย์ที่เช่าได้ทันที
+        </Typography>
+        <Typography sx={{ textIndent: '50px', mt: 3, mb: 4 }}>
+          สัญญานี้ทำขึ้นเป็น 2 ฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความในสัญญานี้โดยตลอดแล้ว เห็นว่าถูกต้อง จึงได้ลงลายมือชื่อไว้เป็นสำคัญต่อหน้าพยาน
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 6 }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................ผู้เช่า</Typography>
+            <Typography>( {display(data.name)} )</Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................ผู้ให้เช่า</Typography>
+            <Typography>( นายมานิตย์ รัตนวงศ์ )</Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................พยาน</Typography>
+            <Typography>(...........................................)</Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Typography sx={{ mb: 4 }}>ลงชื่อ...........................................พยาน</Typography>
+            <Typography>(...........................................)</Typography>
+          </Box>
         </Box>
       </Box>
     </Box>
-    </Box>
-
-    );
-  };
+  );
+};
 
 const ContractPage = () => {
   const navigate = useNavigate();
@@ -215,7 +160,7 @@ const ContractPage = () => {
     phone: '',
     lineId: '',
     address: '',
-    emergencyName: '', 
+    emergencyName: '',
     emergencyPhone: '',
     contractDate: new Date().toISOString().split('T')[0],
     moveInDate: new Date().toISOString().split('T')[0],
@@ -226,6 +171,7 @@ const ContractPage = () => {
     startWater: 0 as number | null,
     otherNotes: ''
   });
+
   const depositValue = Number(formData.deposit) || 0;
   const totalInitialPayment = depositValue + price;
 
@@ -241,7 +187,7 @@ const ContractPage = () => {
     setLoading(true);
     try {
       const payload: ICreateContractRequest = {
-        roomId: roomId,
+        roomId,
         tenantName: formData.name,
         nickname: formData.nickname || null,
         idCard: formData.idCard || null,
@@ -256,22 +202,21 @@ const ContractPage = () => {
         deposit: formData.deposit,
         otherNotes: formData.otherNotes || null,
       };
-      
+
       const response = await TenantFrontendService.createContract(payload);
 
       if (response.success) {
         try {
           await BillingFrontendService.updateMeterReading({
-            roomId: roomId,
+            roomId,
             elecReading: formData.startElec || 0,
             waterReading: formData.startWater || 0,
             readingDate: formData.moveInDate,
-            isInitial: true 
+            isInitial: true
           });
         } catch (meterErr) {
           console.error(meterErr);
         }
-
         navigate('/owner/tenants');
       }
     } catch (err) {
@@ -296,7 +241,6 @@ const ContractPage = () => {
         setFetchingMeter(true);
         const meterData = await BillingFrontendService.getLastReadings();
         const roomReading = meterData.find(item => item.roomId === roomId);
-        
         if (roomReading) {
           setFormData(prev => ({
             ...prev,
@@ -331,6 +275,7 @@ const ContractPage = () => {
       <Box className="no-print" sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, alignItems: 'flex-start' }}>
         <Box sx={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', gap: 3 }}>
 
+          {/* ข้อมูลผู้เช่า */}
           <Paper sx={{ p: 3, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
               <BookUser size={20} color="#6366f1" />
@@ -338,69 +283,49 @@ const ContractPage = () => {
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <TextField fullWidth label="ชื่อ-นามสกุล" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-                <TextField fullWidth label="ชื่อเล่น" value={formData.nickname} onChange={(e) => setFormData({...formData, nickname: e.target.value})} />
+                <TextField fullWidth label="ชื่อ-นามสกุล" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                <TextField fullWidth label="ชื่อเล่น" value={formData.nickname} onChange={(e) => setFormData({ ...formData, nickname: e.target.value })} />
               </Box>
-                <TextField 
-                  fullWidth 
-                  label="เลขบัตรประชาชน" 
-                  value={formData.idCard} 
+              <TextField
+                fullWidth label="เลขบัตรประชาชน" value={formData.idCard}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replaceAll(/\D/g, '').slice(0, 13);
+                  setFormData({ ...formData, idCard: numericValue });
+                }}
+                slotProps={{ htmlInput: { maxLength: 13, inputMode: 'numeric' } }}
+              />
+              <TextField fullWidth multiline rows={2} label="ที่อยู่ตามทะเบียนบ้าน" placeholder="บ้านเลขที่, ถนน, แขวง/ตำบล..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                <TextField
+                  fullWidth label="เบอร์โทรศัพท์" value={formData.phone}
                   onChange={(e) => {
-                    const { value } = e.target;
-                    const numericValue = value.replaceAll(/\D/g, '').slice(0, 13);
-                    
-                    setFormData({...formData, idCard: numericValue });
+                    const numericValue = e.target.value.replaceAll(/\D/g, '').slice(0, 10);
+                    setFormData({ ...formData, phone: numericValue });
                   }}
-                  slotProps={{
-                    htmlInput: {
-                      maxLength: 13,
-                      inputMode: 'numeric'
-                    }
-                  }}
+                  slotProps={{ htmlInput: { maxLength: 10, inputMode: 'numeric' } }}
                 />
-              <TextField fullWidth multiline rows={2} label="ที่อยู่ตามทะเบียนบ้าน" placeholder="บ้านเลขที่, ถนน, แขวง/ตำบล..." value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
-              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <TextField fullWidth label="เบอร์โทรศัพท์" value={formData.phone} 
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const numericValue = value.replaceAll(/\D/g, '').slice(0, 10);    
-                    setFormData({
-                      ...formData, 
-                      phone: numericValue
-                    });
-                  }}
-                  slotProps={{ htmlInput: { maxLength: 10,inputMode: 'numeric' } }}
-                /> 
-              <TextField fullWidth label="ID Line" value={formData.lineId} onChange={(e) => setFormData({...formData, lineId: e.target.value})} />
+                <TextField fullWidth label="ID Line" value={formData.lineId} onChange={(e) => setFormData({ ...formData, lineId: e.target.value })} />
               </Box>
               <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <TextField fullWidth label="ชื่อผู้ติดต่อฉุกเฉิน" value={formData.emergencyName} onChange={(e) => setFormData({...formData, emergencyName: e.target.value})} />
-                <TextField 
-                  fullWidth 
-                  label="เบอร์โทรศัพท์ฉุกเฉิน" 
-                  value={formData.emergencyPhone} 
+                <TextField fullWidth label="ชื่อผู้ติดต่อฉุกเฉิน" value={formData.emergencyName} onChange={(e) => setFormData({ ...formData, emergencyName: e.target.value })} />
+                <TextField
+                  fullWidth label="เบอร์โทรศัพท์ฉุกเฉิน" value={formData.emergencyPhone}
                   onChange={(e) => {
-                    const { value } = e.target;
-                    const numericValue = value.replaceAll(/\D/g, '').slice(0, 10);
-                    
+                    const numericValue = e.target.value.replaceAll(/\D/g, '').slice(0, 10);
                     setFormData({ ...formData, emergencyPhone: numericValue });
                   }}
-                  slotProps={{
-                    htmlInput: {
-                      maxLength: 10,
-                      inputMode: 'numeric'
-                    }
-                  }}
+                  slotProps={{ htmlInput: { maxLength: 10, inputMode: 'numeric' } }}
                 />
               </Box>
             </Box>
           </Paper>
+
+          {/* เงื่อนไขสัญญาเช่า */}
           <Paper sx={{ p: 3, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
               <FileText size={20} color="#6366f1" />
               <Typography variant="h6" sx={{ fontWeight: 'bold' }}>เงื่อนไขสัญญาเช่า</Typography>
             </Box>
-
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
                 {[
@@ -408,79 +333,89 @@ const ContractPage = () => {
                   { label: "วันที่เริ่มเข้าพัก", value: formData.moveInDate, key: "moveInDate" },
                   { label: "วันที่สิ้นสุดสัญญา", value: formData.contractEndDate, key: "contractEndDate" }
                 ].map((item) => (
-                  <Box key={item.key} sx={{ 
-                    '& .react-datepicker-wrapper': { width: '100%' } 
-                  }}>
-                <DatePicker
-                  selected={item.value ? new Date(item.value) : null}
-                  onChange={(date: Date | null) => {
-                    if (date) setFormData({...formData, [item.key]: date.toISOString().split('T')[0]});
-                  }}
-                  locale={th}
-                  value={formatInputDate(item.value)}
-                  portalId="root-portal" 
-                  popperClassName="custom-datepicker-popper"
-                  customInput={
-                    <TextField 
-                      fullWidth 
-                      label={item.label}
-                      slotProps={{ inputLabel: { shrink: true } }} 
-                      sx={{ 
-                        bgcolor: 'white', 
-                        borderRadius: 2,
-                        '& .MuiOutlinedInput-root': { bgcolor: 'white' },
-                        '& input': { cursor: 'pointer' }
-                      }} 
+                  <Box key={item.key} sx={{ '& .react-datepicker-wrapper': { width: '100%' } }}>
+                    <DatePicker
+                      selected={item.value ? new Date(item.value) : null}
+                      onChange={(date: Date | null) => {
+                        if (date) setFormData({ ...formData, [item.key]: date.toISOString().split('T')[0] });
+                      }}
+                      locale={th}
+                      value={formatInputDate(item.value)}
+                      portalId="root-portal"
+                      popperClassName="custom-datepicker-popper"
+                      customInput={
+                        <TextField
+                          fullWidth label={item.label}
+                          slotProps={{ inputLabel: { shrink: true } }}
+                          sx={{ bgcolor: 'white', borderRadius: 2, '& .MuiOutlinedInput-root': { bgcolor: 'white' }, '& input': { cursor: 'pointer' } }}
+                        />
+                      }
                     />
-                  }
-                />
+                  </Box>
+                ))}
               </Box>
-            ))}
-          </Box>
-              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <TextField fullWidth type="number" label="ระยะเวลาเช่า (เดือน)" value={formData.contractTerm || ''} 
-                  onChange={(e) => setFormData({...formData, contractTerm: e.target.value === '' ? null : Number(e.target.value)})} 
-                />
-                <TextField fullWidth disabled label="ค่าเช่าต่อเดือน" value={price.toLocaleString()} slotProps={{ input: { startAdornment: ( <InputAdornment position="start">฿</InputAdornment>)}}} />
-                <TextField fullWidth type="number" label="เงินมัดจำ/ประกัน (บาท)" value={formData.deposit || ''}
-                  onChange={(e) => setFormData({ ...formData, deposit: e.target.value === '' ? null : Number(e.target.value) })} 
-                  slotProps={{ input: { startAdornment: ( <InputAdornment position="start">฿</InputAdornment>)}}}
-                />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <TextField 
-                  fullWidth 
-                  label="ค่าไฟฟ้าเริ่มต้น (หน่วย)" 
-                  value={formData.startElec ?? ''} 
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFormData({
-                      ...formData, 
-                      startElec: val === '' ? null : Number(val)
-                    });
-                  }}
-                  slotProps={{ htmlInput: { inputMode: 'decimal' } }} 
-                />
 
-                <TextField 
-                  fullWidth 
-                  label="ค่าน้ำเริ่มต้น (หน่วย)" 
-                  value={formData.startWater ?? ''} 
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFormData({
-                      ...formData, 
-                      startWater: val === '' ? null : Number(val)
-                    });
-                  }}
-                  slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+              <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                <TextField fullWidth type="number" label="ระยะเวลาเช่า (เดือน)" value={formData.contractTerm || ''}
+                  onChange={(e) => setFormData({ ...formData, contractTerm: e.target.value === '' ? null : Number(e.target.value) })}
+                />
+                <TextField fullWidth disabled label="ค่าเช่าต่อเดือน" value={price.toLocaleString()}
+                  slotProps={{ input: { startAdornment: <InputAdornment position="start">฿</InputAdornment> } }}
+                />
+                <TextField fullWidth type="number" label="เงินมัดจำ/ประกัน (บาท)" value={formData.deposit || ''}
+                  onChange={(e) => setFormData({ ...formData, deposit: e.target.value === '' ? null : Number(e.target.value) })}
+                  slotProps={{ input: { startAdornment: <InputAdornment position="start">฿</InputAdornment> } }}
                 />
               </Box>
-              <TextField fullWidth multiline rows={3} label="เงื่อนไขเพิ่มเติม" placeholder="เช่น กฎระเบียบหอพักบ้านจตุพร" value={formData.otherNotes} onChange={(e) => setFormData({...formData, otherNotes: e.target.value})} />
+
+              {/* หน่วยมิเตอร์เริ่มต้น */}
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b', mb: 1.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  มิเตอร์เริ่มต้น ณ วันเข้าพัก
+                  {fetchingMeter && <CircularProgress size={12} sx={{ ml: 1 }} />}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                  <TextField
+                    fullWidth label="หน่วยไฟฟ้าเริ่มต้น" value={formData.startElec ?? ''}
+                    onChange={(e) => setFormData({ ...formData, startElec: e.target.value === '' ? null : Number(e.target.value) })}
+                    slotProps={{
+                      htmlInput: { inputMode: 'decimal' },
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Zap size={16} color="#ed6c02" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: <InputAdornment position="end">หน่วย</InputAdornment>
+                      }
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fffbf5' } }}
+                  />
+                  <TextField
+                    fullWidth label="หน่วยน้ำเริ่มต้น" value={formData.startWater ?? ''}
+                    onChange={(e) => setFormData({ ...formData, startWater: e.target.value === '' ? null : Number(e.target.value) })}
+                    slotProps={{
+                      htmlInput: { inputMode: 'decimal' },
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Droplets size={16} color="#0288d1" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: <InputAdornment position="end">หน่วย</InputAdornment>
+                      }
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#f0f9ff' } }}
+                  />
+                </Box>
+              </Box>
+
+              <TextField fullWidth multiline rows={3} label="เงื่อนไขเพิ่มเติม" placeholder="เช่น กฎระเบียบหอพักบ้านจตุพร" value={formData.otherNotes} onChange={(e) => setFormData({ ...formData, otherNotes: e.target.value })} />
             </Box>
           </Paper>
         </Box>
 
+        {/* Summary Sidebar */}
         <Box sx={{ width: { xs: '100%', lg: '350px' }, position: { lg: 'sticky' }, top: 24 }}>
           <Paper sx={{ p: 3, borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
@@ -490,11 +425,11 @@ const ContractPage = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="text.secondary">เงินมัดจำ/ประกัน</Typography>
-                <Typography sx={{ fontWeight: '600' }}> ฿{depositValue.toLocaleString()}</Typography>
+                <Typography sx={{ fontWeight: '600' }}>฿{depositValue.toLocaleString()}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="text.secondary">ค่าเช่าล่วงหน้า (1 เดือน)</Typography>
-                <Typography sx={{ fontWeight: '600' }}> ฿{price.toLocaleString()}</Typography>
+                <Typography sx={{ fontWeight: '600' }}>฿{price.toLocaleString()}</Typography>
               </Box>
               <Divider />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -502,35 +437,47 @@ const ContractPage = () => {
                 <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>฿{totalInitialPayment.toLocaleString()}</Typography>
               </Box>
             </Box>
-            <Button 
+
+            <Divider sx={{ my: 2.5, borderStyle: 'dashed' }} />
+
+            {/* มิเตอร์เริ่มต้น summary */}
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b', mb: 1.5 }}>มิเตอร์เริ่มต้น</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 2, bgcolor: '#fffbf5', border: '1px solid #fed7aa' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Zap size={16} color="#ed6c02" />
+                  <Typography variant="body2" color="text.secondary">หน่วยไฟฟ้า</Typography>
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#ed6c02' }}>
+                  {formData.startElec ?? 0} หน่วย
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5, borderRadius: 2, bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Droplets size={16} color="#0288d1" />
+                  <Typography variant="body2" color="text.secondary">หน่วยน้ำประปา</Typography>
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#0288d1' }}>
+                  {formData.startWater ?? 0} หน่วย
+                </Typography>
+              </Box>
+            </Box>
+
+            <Button
               fullWidth variant="contained" size="large"
               disabled={loading || fetchingMeter}
               onClick={handleSubmit}
               startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CheckCircle size={20} />}
-              sx={{ mt: 4, py: 1.5, borderRadius: 3, bgcolor: '#1e293b', fontWeight: 'bold', '&:hover': { bgcolor: '#334155' } }}
+              sx={{ mt: 3, py: 1.5, borderRadius: 3, bgcolor: '#1e293b', fontWeight: 'bold', '&:hover': { bgcolor: '#334155' } }}
             >
               {loading ? 'กำลังบันทึก...' : 'ยืนยันทำสัญญา'}
             </Button>
           </Paper>
         </Box>
-
       </Box>
-      <Box className="print-section" sx={{ 
-          display: 'none', 
-          '@media print': { 
-            display: 'block !important', 
-            position: 'relative',
-            width: '100%',
-            backgroundColor: 'white',
-          } 
-        }}>
-          
-                <ContractTemplate 
-                  data={formData} 
-                  roomNumber={roomNumber} 
-                  price={price} 
-                  floor={floor}
-                />
+
+      <Box className="print-section" sx={{ display: 'none', '@media print': { display: 'block !important', position: 'relative', width: '100%', backgroundColor: 'white' } }}>
+        <ContractTemplate data={formData} roomNumber={roomNumber} price={price} floor={floor} />
       </Box>
     </Box>
   );
