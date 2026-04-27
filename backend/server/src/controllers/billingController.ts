@@ -79,4 +79,16 @@ export const BillingController = {
       });
     }
   },
+  getByMonth: async (req: Request, res: Response) => {
+    try {
+      const { month } = req.params;
+      if (!month || Array.isArray(month) || !/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ message: "รูปแบบเดือนไม่ถูกต้อง (ต้องการ yyyy-MM)" });
+      }
+      const data = await BillingService.getByMonth(month);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch billing by month", error });
+    }
+  },
 };

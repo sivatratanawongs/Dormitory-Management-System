@@ -152,4 +152,15 @@ export const BillingService = {
       include: { tenant: { select: { name: true } } }
     });
   },
+
+  getByMonth: async (month: string) => {
+  return await prisma.billing.findMany({
+    where: { month },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      room: { select: { roomNumber: true } },
+      tenant: { select: { name: true } }
+    }
+  });
+},
 };
