@@ -153,7 +153,7 @@ const HistoryPage = () => {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+          gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(5, 1fr)" },
           gap: 2,
           mb: 4,
         }}
@@ -184,6 +184,15 @@ const HistoryPage = () => {
           </Typography>
           <Typography variant="h5" sx={{ fontWeight: "800", color: "#ed6c02" }}>
             ฿{summary.elecCost.toLocaleString()}
+          </Typography>
+        </Paper>
+
+        <Paper sx={{ p: 2, borderRadius: 3, bgcolor: "#e1f5fe" }}>
+          <Typography variant="body2" sx={{ color: "#0288d1", fontWeight: "bold" }}>
+            รวมค่าน้ำ
+          </Typography>
+          <Typography variant="h5" sx={{ fontWeight: "800", color: "#0288d1" }}>
+            ฿{summary.waterCost.toLocaleString()}
           </Typography>
         </Paper>
 
@@ -279,10 +288,20 @@ const HistoryPage = () => {
                         {room.room?.roomNumber ?? "—"}
                       </TableCell>
                       <TableCell align="center" sx={cellSx}>
-                        {room.tenantId 
-                          ? room.tenantId
-                          : <em style={{ color: "#94a3b8" }}>ว่าง</em>
-                        }
+                        {room.tenantId ? (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {room.tenantId.name}
+                            </Typography>
+                            {room.tenantId.nickname && (
+                              <Typography variant="caption" sx={{ color: "text.secondary", fontStyle: 'italic' }}>
+                                ({room.tenantId.nickname})
+                              </Typography>
+                            )}
+                          </Box>
+                        ) : (
+                          <em style={{ color: "#94a3b8" }}>ว่าง</em>
+                        )}
                       </TableCell>
                       <TableCell align="center" sx={cellSx}>
                         {isVacant ? "—" : `฿${room.roomPrice.toLocaleString()}`}

@@ -1,3 +1,5 @@
+import type { ITenant } from "./tenant";
+
 export interface ILastReading {
   roomId: string;
   roomNumber: string;
@@ -50,9 +52,11 @@ export interface BillingRoomState {
   tenantName?: string;
 }
 
-export interface ITenantBillingHistory extends ICreateBilling {
+
+export interface ITenantBillingHistory extends Omit<ICreateBilling, 'tenantId'> {
   id: string;
   createdAt: Date;
+  tenantId: Pick<ITenant, 'id' | 'name' | 'nickname'> | null; 
   room?: {
     roomNumber: string;
   };
