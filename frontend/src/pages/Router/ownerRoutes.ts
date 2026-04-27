@@ -24,6 +24,10 @@ export const ownerRoutes = [
         path: 'tenants', 
         component: lazy(() => import('../Owner/Menu/tenant/tenant')), 
       },
+      {
+        path: 'history', 
+        component: lazy(() => import('../Owner/Menu/history/historyPage')), 
+      }
     ]
   }
 ];

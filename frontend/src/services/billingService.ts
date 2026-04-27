@@ -26,4 +26,8 @@ export const BillingFrontendService = {
     const response = await api.post<IUpdateMeterResponse>(`${API_PATH}/update-meter`, data);
     return response.data;
   },
+  getByMonth: async (month: string): Promise<ITenantBillingHistory[]> => {
+    const response = await api.get<ITenantBillingHistory[]>(`${API_PATH}/month/${month}`);
+    return response.data;
+  },
 };

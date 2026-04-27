@@ -1,8 +1,9 @@
 import { Box, Toolbar, AppBar, Typography, Paper, Container } from "@mui/material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import {  Calculator, UserCircle, Settings, Home } from "lucide-react";
+import {  Calculator, UserCircle, Settings, Home, History } from "lucide-react";
 
 const menuItems = [
+  { title: "ประวัติค่าห้อง", icon: <History size={24} />, path: "/owner/history" },
   { title: "บันทึกมิเตอร์", icon: <Calculator size={24} />, path: "/owner/billings" },
   { title: "ผู้เช่า", icon: <UserCircle size={24} />, path: "/owner/tenants" },
   { title: "ตั้งค่า", icon: <Settings size={24} />, path: "/owner/settings" },
